@@ -1,0 +1,91 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Unit test / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# IDE and Editor artifacts
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+tempCodeRunnerFile.py
+
+# Runtime Generated Logs and Evidence Captures
+*.log
+*detection_log.txt
+emergency_detection_log.txt
+ambulance_detection_log.txt
+evidence/
+New folder/
+
+# OS artifacts
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# ------------------------------------------------------------------
+# Published-repository curation (full datasets retained locally)
+# ------------------------------------------------------------------
+# Generated audio spectrogram images (derived artefacts, not source data)
+data/audio/**/*.png
+
+# Audio dataset: publish only the two fixtures used by the test suite
+data/audio/*/*.wav
+!data/audio/siren/sound_1.wav
+!data/audio/non-siren/sound_401.wav
+
+# Video: publish one small sample clip only
+data/Video/*
+!data/Video/1.mp4
+
+# Secondary YOLOv8 checkpoint (unused duplicate, kept locally)
+Yovov8l_Amubalce_trained.pt
+
+# YOLO dataset caches
+*.cache
+

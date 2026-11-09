@@ -1,0 +1,21 @@
+# Core Computer Vision & Deep Learning
+ultralytics==8.4.22
+torch==2.10.0
+torchvision==0.25.0
+opencv-python==4.13.0.92
+cvzone==1.6.1
+Pillow==12.1.1
+
+# Audio Processing & Classical Machine Learning
+librosa==0.11.0
+scikit-learn==1.8.0
+soundfile==0.13.1
+numpy==2.4.3
+scipy==1.17.1
+
+# Configuration & Utilities
+PyYAML==6.0.3
+
+# Testing Framework
+pytest==9.2.0
+
