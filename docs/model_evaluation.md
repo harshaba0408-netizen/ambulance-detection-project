@@ -40,6 +40,38 @@ For transparency, the final epoch (187) recorded in `train_results` was: Precisi
 
 > `Yovov8l_Amubalce_trained.pt` is an earlier comparison checkpoint. It is **not published** in the repository (excluded by `.gitignore`) and is not loaded by any script; only `yolov8l_ambulance.pt` is used at runtime.
 
+### Independent test-split evaluation (Stage 4 harness)
+
+Command:
+
+```powershell
+.\venv\Scripts\python.exe scripts\evaluate_yolo.py --split test --imgsz 640 --no-plots --output benchmarks\results\yolo_test_640.json
+```
+
+Measured on the published checkpoint (`sha256 6784b16f…0229d`), CPU-only `torch 2.10.0+cpu`, Intel Core i3-10110U (4 logical cores), 7.9 GB RAM. Evaluation used `conf=0.001` (the mAP protocol), **not** the dashboard's operating threshold of 0.65. The test split contains **5 images with 5 labelled instances**.
+
+| Input size | Precision | Recall | mAP@50 | mAP@50-95 | Inference (ms/image) |
+|---:|---:|---:|---:|---:|---:|
+| 640 × 640 | 0.9207 | 0.4000 | 0.5217 | 0.4088 | 3558.3 |
+| 320 × 320 | 0.5714 | 0.8000 | 0.7217 | 0.4047 | 1611.7 |
+
+Raw results: `benchmarks/results/yolo_test_640.json` and `benchmarks/results/yolo_test_320.json`.
+
+Stage 10 re-measured the same checkpoint and split with `scripts/benchmark_vision.py`:
+
+```powershell
+.\venv\Scripts\python.exe scripts\benchmark_vision.py --split test --imgsz 640 --no-plots
+```
+
+The quality metrics were identical to the 640 row above (precision 0.9207, recall 0.4000, mAP@50 0.5217, mAP@50-95 0.4088), while inference time differed (2612.4 ms/image; 2632.54 ms/image including preprocess and postprocess; 0.3799 images/s). The stored result is `benchmarks/results/vision_test_640_20261110T084458Z.json`. Speed varies with machine load; quality does not, for a fixed checkpoint, split and threshold. Full comparison: [`BASELINE_VS_IMPROVED.md`](BASELINE_VS_IMPROVED.md).
+
+**How to read this table**
+
+* It is an independent held-out test split, but five images cannot support a generalisation claim. The two rows differ dramatically in recall because a single miss changes recall by 20 percentage points.
+* These values are **not** comparable to the 10-image validation metrics above, and they are not evidence of improvement or regression. They are a reproducible check that the harness runs and records real output.
+* Inference latency is measured on this CPU only and includes Ultralytics validation overhead per image. It is not a real-time FPS claim.
+* The first 640 × 640 attempt with plots enabled exceeded 15 minutes on this machine and produced no output; `--no-plots` was required to complete in ~18 s. This is an environment limitation, not a model property.
+
 ---
 
 ## 2. Audio Processing: Siren Acoustic Classifier (`siren_classifier.pkl`)

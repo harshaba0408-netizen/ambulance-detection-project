@@ -1,0 +1,11 @@
+[run]
+source = src/ambulance_system
+branch = False
+
+[report]
+show_missing = True
+precision = 0
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.:
+    raise SystemExit

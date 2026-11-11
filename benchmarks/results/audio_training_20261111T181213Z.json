@@ -1,0 +1,217 @@
+{
+  "benchmark": "audio_training",
+  "kind": "held_out_classifier_evaluation",
+  "evaluation_kind": "held_out_content_group",
+  "evaluation_validity": "held_out_content_group",
+  "source_independent": false,
+  "duplicate_contaminated": false,
+  "validity_note": "Known acoustic content groups are held out, but content groups are not verified sessions or sources; these metrics are not source-independent.",
+  "generated_at": "2026-11-11T18:12:00.612891+00:00",
+  "command": [
+    "scripts/train_audio.py",
+    "--split",
+    "data/audio/splits/audio_split.json"
+  ],
+  "environment": {
+    "python": "3.12.5",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 142 Stepping 12, GenuineIntel",
+    "cpu_count": 4,
+    "ram_total_gb": 7.86,
+    "ram_available_gb": 0.72,
+    "torch": "2.10.0+cpu",
+    "cuda_available": false,
+    "ultralytics": "8.4.22"
+  },
+  "split": {
+    "path": "C:\\Users\\N E\\OneDrive\\Desktop\\Ambulance Project\\ambulance_detection_project\\ambulance_detection_project\\data\\audio\\splits\\audio_split.json",
+    "sha256": "c878fa6a5100b0e2baf042387d1edf44c0e950053f4fcb8b8049c6a8716395da",
+    "provenance_status": "unverified",
+    "source_independent": false,
+    "grouping": "content_group_id",
+    "evaluation_kind": "held_out_content_group",
+    "counts": {
+      "files": 396,
+      "excluded_duplicates": 4,
+      "groups_per_class": {
+        "siren": 174,
+        "non-siren": 60
+      },
+      "per_split": {
+        "train": {
+          "non-siren": 142,
+          "siren": 138
+        },
+        "val": {
+          "non-siren": 30,
+          "siren": 32
+        },
+        "test": {
+          "non-siren": 28,
+          "siren": 26
+        }
+      }
+    },
+    "caveat": "Splits are grouped by acoustic content-group id; no content group spans two splits, so repeated or near-duplicate recordings are held out together. Content groups are acoustic evidence only, not verified recording sessions or sources. Do not call these metrics source-independent."
+  },
+  "features": {
+    "sample_rate": 22050,
+    "duration_s": 3.0,
+    "n_mfcc": 40
+  },
+  "model": {
+    "type": "RandomForestClassifier",
+    "params": {
+      "n_estimators": 100,
+      "random_state": 42,
+      "max_features": "sqrt",
+      "n_jobs": -1
+    },
+    "training_samples": 280,
+    "fit_and_feature_seconds": 18.411,
+    "path": "C:\\Users\\N E\\OneDrive\\Desktop\\Ambulance Project\\ambulance_detection_project\\ambulance_detection_project\\artifacts\\experiments\\audio_rf_20261111T181213Z\\siren_classifier.pkl",
+    "sha256": "2d078d20e26741c86c21fe4195fbebb3cff6b15e52e4453d4799792e6d6a5e54",
+    "size_bytes": 105034
+  },
+  "data": {
+    "train": {
+      "samples": 280,
+      "timing": {
+        "load_ms": {
+          "count": 280,
+          "mean_ms": 39.2073,
+          "median_ms": 8.7881,
+          "p95_ms": 35.5544,
+          "max_ms": 7614.1223
+        },
+        "mfcc_ms": {
+          "count": 280,
+          "mean_ms": 15.8404,
+          "median_ms": 12.6132,
+          "p95_ms": 25.8325,
+          "max_ms": 368.4397
+        }
+      }
+    },
+    "val": {
+      "samples": 62,
+      "timing": {
+        "load_ms": {
+          "count": 62,
+          "mean_ms": 9.3798,
+          "median_ms": 8.6164,
+          "p95_ms": 15.0331,
+          "max_ms": 19.7888
+        },
+        "mfcc_ms": {
+          "count": 62,
+          "mean_ms": 12.1216,
+          "median_ms": 11.3287,
+          "p95_ms": 15.3818,
+          "max_ms": 23.6304
+        }
+      }
+    },
+    "test": {
+      "samples": 54,
+      "timing": {
+        "load_ms": {
+          "count": 54,
+          "mean_ms": 9.2236,
+          "median_ms": 8.6749,
+          "p95_ms": 15.003,
+          "max_ms": 16.0731
+        },
+        "mfcc_ms": {
+          "count": 54,
+          "mean_ms": 12.5916,
+          "median_ms": 11.8101,
+          "p95_ms": 17.9031,
+          "max_ms": 22.4491
+        }
+      }
+    }
+  },
+  "metrics": {
+    "val": {
+      "samples": 62,
+      "metrics": {
+        "true_positive": 32,
+        "false_positive": 0,
+        "true_negative": 30,
+        "false_negative": 0,
+        "samples": 62,
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "specificity": 1.0,
+        "f1": 1.0,
+        "false_positive_rate": 0.0,
+        "false_negative_rate": 0.0,
+        "balanced_accuracy": 1.0
+      }
+    },
+    "test": {
+      "samples": 54,
+      "metrics": {
+        "true_positive": 26,
+        "false_positive": 0,
+        "true_negative": 28,
+        "false_negative": 0,
+        "samples": 54,
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "specificity": 1.0,
+        "f1": 1.0,
+        "false_positive_rate": 0.0,
+        "false_negative_rate": 0.0,
+        "balanced_accuracy": 1.0
+      }
+    }
+  },
+  "existing_model_on_same_split": {
+    "val": {
+      "path": "C:\\Users\\N E\\OneDrive\\Desktop\\Ambulance Project\\ambulance_detection_project\\ambulance_detection_project\\siren_classifier.pkl",
+      "sha256": "2aa5a0dfd561dc0ba9d5a80873b65b39f979675079286c698a85c5e41f3a8e5c",
+      "samples": 62,
+      "metrics": {
+        "true_positive": 32,
+        "false_positive": 0,
+        "true_negative": 30,
+        "false_negative": 0,
+        "samples": 62,
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "specificity": 1.0,
+        "f1": 1.0,
+        "false_positive_rate": 0.0,
+        "false_negative_rate": 0.0,
+        "balanced_accuracy": 1.0
+      }
+    },
+    "test": {
+      "path": "C:\\Users\\N E\\OneDrive\\Desktop\\Ambulance Project\\ambulance_detection_project\\ambulance_detection_project\\siren_classifier.pkl",
+      "sha256": "2aa5a0dfd561dc0ba9d5a80873b65b39f979675079286c698a85c5e41f3a8e5c",
+      "samples": 54,
+      "metrics": {
+        "true_positive": 26,
+        "false_positive": 0,
+        "true_negative": 28,
+        "false_negative": 0,
+        "samples": 54,
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "specificity": 1.0,
+        "f1": 1.0,
+        "false_positive_rate": 0.0,
+        "false_negative_rate": 0.0,
+        "balanced_accuracy": 1.0
+      }
+    }
+  },
+  "notes": "The shipped siren_classifier.pkl is unchanged. This experiment is not wired into the runtime. Content-group metrics hold out acoustic groups, not verified sessions or sources. If source_independent is false, the scores are not source-independent and may overstate generalisation.",
+  "output_dir": "C:\\Users\\N E\\OneDrive\\Desktop\\Ambulance Project\\ambulance_detection_project\\ambulance_detection_project\\artifacts\\experiments\\audio_rf_20261111T181213Z"
+}

@@ -1,0 +1,140 @@
+{
+  "benchmark": "audio",
+  "kind": "measured_classifier_evaluation",
+  "evaluation_kind": "resubstitution",
+  "caveat": "The shipped classifier was trained on these same clips. Metrics describe training-data fit, not held-out accuracy, and must not be reported as validation or real-world performance.",
+  "generated_at": "2026-11-10T08:37:16.902051+00:00",
+  "command": [
+    "scripts\\benchmark_audio.py"
+  ],
+  "environment": {
+    "python": "3.12.5",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 142 Stepping 12, GenuineIntel",
+    "cpu_count": 4,
+    "ram_total_gb": 7.86,
+    "ram_available_gb": 1.27,
+    "torch": "2.10.0+cpu",
+    "cuda_available": false,
+    "ultralytics": "8.4.22"
+  },
+  "model": {
+    "path": "C:\\Users\\N E\\OneDrive\\Desktop\\Ambulance Project\\ambulance_detection_project\\ambulance_detection_project\\siren_classifier.pkl",
+    "size_bytes": 118371,
+    "sha256": "2aa5a0dfd561dc0ba9d5a80873b65b39f979675079286c698a85c5e41f3a8e5c",
+    "training_unchanged": true
+  },
+  "dataset": {
+    "root": "C:\\Users\\N E\\OneDrive\\Desktop\\Ambulance Project\\ambulance_detection_project\\ambulance_detection_project\\data\\audio",
+    "files": 400,
+    "siren": 200,
+    "non_siren": 200,
+    "content_duplicate_groups": [
+      {
+        "sha256": "a44c6a7026ac407acacd8d6eb5d0ed914bfb9a0602575024dd153da6cfcbf136",
+        "files": [
+          "data\\audio\\siren\\sound_129.wav",
+          "data\\audio\\siren\\sound_130.wav"
+        ],
+        "classes": [
+          "siren"
+        ]
+      },
+      {
+        "sha256": "7b0fe0047b3e6b6ff088355b9001c6de0387ded2992103e384be51b854f23059",
+        "files": [
+          "data\\audio\\siren\\sound_73.wav",
+          "data\\audio\\siren\\sound_76.wav"
+        ],
+        "classes": [
+          "siren"
+        ]
+      },
+      {
+        "sha256": "fa2a3dd443c87762b8f3355cd828cc588be3e1909f12eb60ee6ee8f509580262",
+        "files": [
+          "data\\audio\\siren\\sound_74.wav",
+          "data\\audio\\siren\\sound_77.wav"
+        ],
+        "classes": [
+          "siren"
+        ]
+      },
+      {
+        "sha256": "0cb1de04d85e6954d222a33bb74f2d4938457fe229fce4b92b30a3530779d57a",
+        "files": [
+          "data\\audio\\siren\\sound_75.wav",
+          "data\\audio\\siren\\sound_78.wav"
+        ],
+        "classes": [
+          "siren"
+        ]
+      }
+    ],
+    "content_duplicate_group_count": 4
+  },
+  "settings": {
+    "sample_rate": 22050,
+    "duration_s": 3.0,
+    "n_mfcc": 40,
+    "decision_threshold": 0.5
+  },
+  "metrics": {
+    "true_positive": 200,
+    "false_positive": 0,
+    "true_negative": 200,
+    "false_negative": 0,
+    "samples": 400,
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "specificity": 1.0,
+    "f1": 1.0,
+    "false_positive_rate": 0.0,
+    "false_negative_rate": 0.0,
+    "balanced_accuracy": 1.0
+  },
+  "latency": {
+    "load_ms": {
+      "count": 400,
+      "mean_ms": 52.6762,
+      "median_ms": 17.6467,
+      "p95_ms": 28.9033,
+      "max_ms": 13668.6022
+    },
+    "mfcc_ms": {
+      "count": 400,
+      "mean_ms": 33.0476,
+      "median_ms": 30.3614,
+      "p95_ms": 45.4826,
+      "max_ms": 526.9381
+    },
+    "predict_ms": {
+      "count": 400,
+      "mean_ms": 128.861,
+      "median_ms": 124.2911,
+      "p95_ms": 179.9594,
+      "max_ms": 275.5128
+    },
+    "end_to_end_ms": {
+      "count": 400,
+      "mean_ms": 214.5848,
+      "median_ms": 173.2084,
+      "p95_ms": 246.8625,
+      "max_ms": 14372.1019
+    }
+  },
+  "throughput": {
+    "clips_per_second": 4.6599,
+    "wall_seconds": 85.8389
+  },
+  "diagnostics": {
+    "mean_audio_duration_s": 3.0,
+    "min_confidence": 0.0,
+    "max_confidence": 1.0,
+    "mean_confidence": 0.4966,
+    "label_threshold_mismatches": 0,
+    "predictions": 400
+  },
+  "output": "C:\\Users\\N E\\OneDrive\\Desktop\\Ambulance Project\\ambulance_detection_project\\ambulance_detection_project\\benchmarks\\results\\audio_resubstitution_20261110T083904Z.json"
+}

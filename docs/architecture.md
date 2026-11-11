@@ -29,8 +29,8 @@ graph TD
     end
 
     subgraph COORDINATOR ["Intelligent Signal Decision Engine"]
-        D1["Policy Dispatcher (AUDIO / VIDEO / BOTH)"]
-        D2["Emergency State Arbiter & Latching Controller"]
+        D1["Fusion Policy Dispatcher (AUDIO / VIDEO / BOTH / ADAPTIVE)"]
+        D2["Evidence Staleness, Hysteresis & Conflict Arbiter"]
         D3["Traffic Light State Machine (Road 1 - 4)"]
     end
 
@@ -108,7 +108,7 @@ stateDiagram-v2
 
     state GreenPriorityState {
         [*] --> GreenLightActive: Emergency Mode
-        GreenLightActive --> LatchHold: Maintain Green
+        GreenLightActive --> PriorityHold: Maintain Green
     }
 
     CheckPolicy --> GreenPriorityState: Detection Matches Policy (AUDIO / VIDEO / BOTH)
@@ -117,7 +117,8 @@ stateDiagram-v2
 
 - **AUDIO Policy:** Requires positive siren acoustic classification.
 - **VIDEO Policy:** Requires visual ambulance bounding box above threshold ($\ge 0.65$).
-- **BOTH Policy:** Requires dual simultaneous verification (visual ambulance detection AND audible siren) before turning green, eliminating false alarms.
+- **BOTH Policy:** Requires fresh evidence from both modalities within the configured staleness window, reducing false alarms.
+- **ADAPTIVE Policy:** `BOTH` plus a tighter temporal window; it is never looser than `BOTH`.
 
-> **Implemented behaviour note:** in `new.py` the per-road detection flags are latched once set. The signal therefore stays green until the operator presses **Clear All**, rather than reverting automatically when the siren stops. The `TrafficSignalCoordinator` test double in `tests/test_traffic_signal_logic.py` models the stateless revert-to-red rule; it does not exercise the Tkinter latching layer.
+> **Implemented behaviour note (Stage 8):** `new.py` is now a thin launcher for `ambulance_system.dashboard.app`. The dashboard's headless view-model owns a `FusionEngine` and the Stage 3 `SignalController`; audio and video evidence expires after `fusion.stale_after_s`, the controller applies activation/release hysteresis and transition timing, and only one approach can hold GREEN. Detection flags are no longer latched: priority is released when evidence goes stale or the release rules are met. **Clear All** remains a manual full reset (sources, evidence, metrics, signals and policies), and **Simulate Fault** forces all-red until **Clear Fault**. See [`dashboard.md`](dashboard.md), [`fusion.md`](fusion.md) and [`signal_state_machine.md`](signal_state_machine.md).
 

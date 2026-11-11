@@ -1,0 +1,65 @@
+# Runtime configuration for the AI Ambulance Detection prototype.
+#
+# This file contains no secrets. Paths are relative to the repository root and
+# are resolved to absolute paths by `ambulance_system.config.load_config`.
+# Every value is validated at start-up; see docs/configuration.md.
+
+model:
+  yolo_path: yolov8l_ambulance.pt
+  siren_classifier_path: siren_classifier.pkl
+  confidence_threshold: 0.65
+  imgsz: 640
+
+video:
+  source_type: file          # file | webcam | rtsp
+  file_path: null            # selected at runtime when source_type is "file"
+  webcam_index: 0
+  rtsp_url: null             # only used when source_type is "rtsp"
+  frame_skip: 5
+  read_delay_s: 0.01         # pause between file reads; 0.0 plays as fast as decoded
+  reconnect_delay_s: 2.0
+  read_timeout_s: 5.0
+  display_width: 320
+  display_height: 180
+
+audio:
+  sample_rate: 22050
+  window_s: 3.0
+  overlap_s: 1.5
+  block_s: 0.25
+  threshold: 0.5
+  channels: 1
+  device: null               # null selects the system default microphone
+
+signal:
+  activation_threshold: 0.65
+  release_threshold: 0.50
+  min_confirmation_s: 1.0
+  release_grace_s: 2.0
+  max_priority_s: 30.0
+  min_green_s: 5.0
+  yellow_s: 3.0
+  all_red_s: 2.0
+  fail_safe_state: ALL_RED   # the only state permitted in the simulator
+
+fusion:
+  policy: AUDIO              # VIDEO | AUDIO | BOTH | ADAPTIVE
+  stale_after_s: 3.0
+  debounce_s: 1.0
+  adaptive_window_s: 1.0     # ADAPTIVE requires both modalities within this tighter window
+
+logging:
+  level: INFO
+  text_file: null
+  json_file: null
+
+monitoring:
+  metrics_interval_s: 1.0
+
+system:
+  num_approaches: 4
+  approach_names:
+    - Road 1
+    - Road 2
+    - Road 3
+    - Road 4

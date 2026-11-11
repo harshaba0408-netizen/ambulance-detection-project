@@ -34,7 +34,8 @@
   - `data/audio/siren/`: 200 ambulance siren samples (`sound_1.wav` to `sound_200.wav`)
   - `data/audio/non-siren/`: 200 non-siren environmental samples (`sound_401.wav` to `sound_600.wav`)
 - **Balance:** 1:1 ratio between emergency siren sounds and urban traffic noises.
-- **Provenance note:** the audio clips do not carry an explicit licence file in this repository. Their original source/licence should be confirmed before public redistribution; the vision dataset is the only component with a documented CC BY 4.0 licence.
+- **Provenance note:** the audio clips do not carry an explicit licence file in this repository. Only `sound_85`–`87` have been traced to a named source: Freesound 87130 (`20091229.ambulance.siren.wav` by **dobroide**, recorded 2009 in Seville, **CC BY 4.0**). `sound_88`–`90` carry a 2011-05-18 / Zoom H2n recorder tag but their source is unresolved. The remaining 394 files have no verified source or licence; only `sound_88`–`90` carry additional recorder tags (2011-05-18 / Zoom H2n), and their source is unresolved.
+- **Independence warning:** the 200 non-siren files are **not 200 independent clips**. Content analysis found **60 unique 3-second clips**, each repeated 3-4 times in 60-file blocks (20 groups of 4, 40 groups of 3). The siren set contains four byte-identical pairs (`73=76`, `74=77`, `75=78`, `129=130`), three further near-identical pairs, and 32 related pairs at `r >= 0.80` after alignment. The stored Stage 11 1.0000 audio scores are therefore **duplicate-contaminated**, not valid held-out estimates. Stage 12 regenerated the split with **234 acoustic content groups** (60 non-siren, 174 siren; 0 groups span splits) and retrained; the new result is labelled **`held_out_content_group`** and also scored 1.0000, but it is **not source-independent**. See [`AUDIO_DATASET_PROVENANCE.md`](AUDIO_DATASET_PROVENANCE.md) for the full evidence, split-leakage counts and recommended next action.
 
 ---
 

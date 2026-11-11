@@ -1,0 +1,385 @@
+{
+  "benchmark": "audio_integrity",
+  "kind": "dataset_audit",
+  "generated_at": "2026-11-11T07:12:08.300490+00:00",
+  "command": [
+    "scripts\\audio_integrity.py"
+  ],
+  "dataset_root": "C:\\Users\\N E\\OneDrive\\Desktop\\Ambulance Project\\ambulance_detection_project\\ambulance_detection_project\\data\\audio",
+  "provenance_status": "unverified",
+  "source_metadata_present": false,
+  "caveat": "No source, session, recording, licence or author metadata exists in the WAV files beyond an ffmpeg encoder tag. Format/encoder cohorts are observed encoding batches, not verified recording sessions.",
+  "summary": {
+    "files": 400,
+    "classes": {
+      "siren": 200,
+      "non-siren": 200
+    },
+    "number_ranges": {
+      "siren": [
+        1,
+        200
+      ],
+      "non-siren": [
+        401,
+        600
+      ]
+    },
+    "missing_numbers": {
+      "siren": [],
+      "non-siren": []
+    },
+    "duplicate_groups": 4,
+    "duplicate_files": 4,
+    "encoding_cohorts": 18
+  },
+  "formats": {
+    "44100 Hz / 2 ch / PCM_16 / Lavf57.83.100": 129,
+    "48000 Hz / 1 ch / PCM_16 / Lavf57.83.100": 6,
+    "48000 Hz / 2 ch / PCM_16 / Lavf57.83.100": 9,
+    "44100 Hz / 2 ch / PCM_16 / Lavf58.27.103": 1,
+    "48000 Hz / 2 ch / PCM_16 / Lavf58.20.100": 35,
+    "44100 Hz / 1 ch / PCM_16 / Lavf57.83.100": 3,
+    "44100 Hz / 2 ch / PCM_16 / Lavf58.20.100": 5,
+    "22050 Hz / 1 ch / PCM_16 / Lavf57.83.100": 6,
+    "44100 Hz / 2 ch / PCM_16 / no encoder tag": 203,
+    "48000 Hz / 2 ch / PCM_16 / no encoder tag": 3
+  },
+  "duplicate_groups": [
+    {
+      "sha256": "7b0fe0047b3e6b6ff088355b9001c6de0387ded2992103e384be51b854f23059",
+      "class": "siren",
+      "numbers": [
+        73,
+        76
+      ],
+      "files": [
+        "data\\audio\\siren\\sound_73.wav",
+        "data\\audio\\siren\\sound_76.wav"
+      ],
+      "keep": "data\\audio\\siren\\sound_73.wav",
+      "duplicates": [
+        "data\\audio\\siren\\sound_76.wav"
+      ]
+    },
+    {
+      "sha256": "fa2a3dd443c87762b8f3355cd828cc588be3e1909f12eb60ee6ee8f509580262",
+      "class": "siren",
+      "numbers": [
+        74,
+        77
+      ],
+      "files": [
+        "data\\audio\\siren\\sound_74.wav",
+        "data\\audio\\siren\\sound_77.wav"
+      ],
+      "keep": "data\\audio\\siren\\sound_74.wav",
+      "duplicates": [
+        "data\\audio\\siren\\sound_77.wav"
+      ]
+    },
+    {
+      "sha256": "0cb1de04d85e6954d222a33bb74f2d4938457fe229fce4b92b30a3530779d57a",
+      "class": "siren",
+      "numbers": [
+        75,
+        78
+      ],
+      "files": [
+        "data\\audio\\siren\\sound_75.wav",
+        "data\\audio\\siren\\sound_78.wav"
+      ],
+      "keep": "data\\audio\\siren\\sound_75.wav",
+      "duplicates": [
+        "data\\audio\\siren\\sound_78.wav"
+      ]
+    },
+    {
+      "sha256": "a44c6a7026ac407acacd8d6eb5d0ed914bfb9a0602575024dd153da6cfcbf136",
+      "class": "siren",
+      "numbers": [
+        129,
+        130
+      ],
+      "files": [
+        "data\\audio\\siren\\sound_129.wav",
+        "data\\audio\\siren\\sound_130.wav"
+      ],
+      "keep": "data\\audio\\siren\\sound_129.wav",
+      "duplicates": [
+        "data\\audio\\siren\\sound_130.wav"
+      ]
+    }
+  ],
+  "encoding_cohorts": [
+    {
+      "class": "siren",
+      "numbers": [
+        1,
+        18
+      ],
+      "count": 18,
+      "contiguous": true,
+      "sample_rate": 44100,
+      "channels": 2,
+      "subtype": "PCM_16",
+      "encoder": "Lavf57.83.100"
+    },
+    {
+      "class": "siren",
+      "numbers": [
+        19,
+        21
+      ],
+      "count": 3,
+      "contiguous": true,
+      "sample_rate": 44100,
+      "channels": 1,
+      "subtype": "PCM_16",
+      "encoder": "Lavf57.83.100"
+    },
+    {
+      "class": "siren",
+      "numbers": [
+        22,
+        63
+      ],
+      "count": 42,
+      "contiguous": true,
+      "sample_rate": 44100,
+      "channels": 2,
+      "subtype": "PCM_16",
+      "encoder": "Lavf57.83.100"
+    },
+    {
+      "class": "siren",
+      "numbers": [
+        64,
+        69
+      ],
+      "count": 6,
+      "contiguous": true,
+      "sample_rate": 22050,
+      "channels": 1,
+      "subtype": "PCM_16",
+      "encoder": "Lavf57.83.100"
+    },
+    {
+      "class": "siren",
+      "numbers": [
+        70,
+        81
+      ],
+      "count": 12,
+      "contiguous": true,
+      "sample_rate": 44100,
+      "channels": 2,
+      "subtype": "PCM_16",
+      "encoder": "Lavf57.83.100"
+    },
+    {
+      "class": "siren",
+      "numbers": [
+        82,
+        84
+      ],
+      "count": 3,
+      "contiguous": true,
+      "sample_rate": 48000,
+      "channels": 2,
+      "subtype": "PCM_16",
+      "encoder": "Lavf57.83.100"
+    },
+    {
+      "class": "siren",
+      "numbers": [
+        85,
+        87
+      ],
+      "count": 3,
+      "contiguous": true,
+      "sample_rate": 44100,
+      "channels": 2,
+      "subtype": "PCM_16",
+      "encoder": null
+    },
+    {
+      "class": "siren",
+      "numbers": [
+        88,
+        90
+      ],
+      "count": 3,
+      "contiguous": true,
+      "sample_rate": 48000,
+      "channels": 2,
+      "subtype": "PCM_16",
+      "encoder": null
+    },
+    {
+      "class": "siren",
+      "numbers": [
+        91,
+        126
+      ],
+      "count": 36,
+      "contiguous": true,
+      "sample_rate": 44100,
+      "channels": 2,
+      "subtype": "PCM_16",
+      "encoder": "Lavf57.83.100"
+    },
+    {
+      "class": "siren",
+      "numbers": [
+        127,
+        132
+      ],
+      "count": 6,
+      "contiguous": true,
+      "sample_rate": 48000,
+      "channels": 1,
+      "subtype": "PCM_16",
+      "encoder": "Lavf57.83.100"
+    },
+    {
+      "class": "siren",
+      "numbers": [
+        133,
+        135
+      ],
+      "count": 3,
+      "contiguous": true,
+      "sample_rate": 48000,
+      "channels": 2,
+      "subtype": "PCM_16",
+      "encoder": "Lavf57.83.100"
+    },
+    {
+      "class": "siren",
+      "numbers": [
+        136,
+        150
+      ],
+      "count": 15,
+      "contiguous": true,
+      "sample_rate": 44100,
+      "channels": 2,
+      "subtype": "PCM_16",
+      "encoder": "Lavf57.83.100"
+    },
+    {
+      "class": "siren",
+      "numbers": [
+        151,
+        153
+      ],
+      "count": 3,
+      "contiguous": true,
+      "sample_rate": 48000,
+      "channels": 2,
+      "subtype": "PCM_16",
+      "encoder": "Lavf57.83.100"
+    },
+    {
+      "class": "siren",
+      "numbers": [
+        154,
+        159
+      ],
+      "count": 6,
+      "contiguous": true,
+      "sample_rate": 44100,
+      "channels": 2,
+      "subtype": "PCM_16",
+      "encoder": "Lavf57.83.100"
+    },
+    {
+      "class": "siren",
+      "numbers": [
+        160,
+        160
+      ],
+      "count": 1,
+      "contiguous": true,
+      "sample_rate": 44100,
+      "channels": 2,
+      "subtype": "PCM_16",
+      "encoder": "Lavf58.27.103"
+    },
+    {
+      "class": "siren",
+      "numbers": [
+        161,
+        195
+      ],
+      "count": 35,
+      "contiguous": true,
+      "sample_rate": 48000,
+      "channels": 2,
+      "subtype": "PCM_16",
+      "encoder": "Lavf58.20.100"
+    },
+    {
+      "class": "siren",
+      "numbers": [
+        196,
+        200
+      ],
+      "count": 5,
+      "contiguous": true,
+      "sample_rate": 44100,
+      "channels": 2,
+      "subtype": "PCM_16",
+      "encoder": "Lavf58.20.100"
+    },
+    {
+      "class": "non-siren",
+      "numbers": [
+        401,
+        600
+      ],
+      "count": 200,
+      "contiguous": true,
+      "sample_rate": 44100,
+      "channels": 2,
+      "subtype": "PCM_16",
+      "encoder": null
+    }
+  ],
+  "quarantine_plan": [
+    {
+      "sha256": "7b0fe0047b3e6b6ff088355b9001c6de0387ded2992103e384be51b854f23059",
+      "keep": "data\\audio\\siren\\sound_73.wav",
+      "quarantine": [
+        "data\\audio\\siren\\sound_76.wav"
+      ],
+      "reason": "exact content duplicate"
+    },
+    {
+      "sha256": "fa2a3dd443c87762b8f3355cd828cc588be3e1909f12eb60ee6ee8f509580262",
+      "keep": "data\\audio\\siren\\sound_74.wav",
+      "quarantine": [
+        "data\\audio\\siren\\sound_77.wav"
+      ],
+      "reason": "exact content duplicate"
+    },
+    {
+      "sha256": "0cb1de04d85e6954d222a33bb74f2d4938457fe229fce4b92b30a3530779d57a",
+      "keep": "data\\audio\\siren\\sound_75.wav",
+      "quarantine": [
+        "data\\audio\\siren\\sound_78.wav"
+      ],
+      "reason": "exact content duplicate"
+    },
+    {
+      "sha256": "a44c6a7026ac407acacd8d6eb5d0ed914bfb9a0602575024dd153da6cfcbf136",
+      "keep": "data\\audio\\siren\\sound_129.wav",
+      "quarantine": [
+        "data\\audio\\siren\\sound_130.wav"
+      ],
+      "reason": "exact content duplicate"
+    }
+  ],
+  "output": "C:\\Users\\N E\\OneDrive\\Desktop\\Ambulance Project\\ambulance_detection_project\\ambulance_detection_project\\benchmarks\\results\\audio_integrity_20261111T071208Z.json"
+}

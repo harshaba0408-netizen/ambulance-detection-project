@@ -36,6 +36,7 @@ venv.bak/
 
 # Unit test / coverage
 .pytest_cache/
+.pytest_tmp/
 .coverage
 .coverage.*
 nosetests.xml
@@ -88,4 +89,24 @@ Yovov8l_Amubalce_trained.pt
 
 # YOLO dataset caches
 *.cache
+
+# ------------------------------------------------------------------
+# Advanced prototype runtime artefacts
+# ------------------------------------------------------------------
+logs/
+runs/
+artifacts/
+benchmarks/results/*
+!benchmarks/results/yolo_test_320.json
+!benchmarks/results/yolo_test_640.json
+# Stage 10 results: published as provenance; reruns create new timestamped names.
+!benchmarks/results/vision_test_640_20261110T084458Z.json
+!benchmarks/results/audio_resubstitution_20261110T083904Z.json
+!benchmarks/results/system_simulation_20261110T085500Z.json
+# Stage 11 results: dataset audit and the new experiment's held-out metrics.
+!benchmarks/results/audio_integrity_20261111T071208Z.json
+!benchmarks/results/audio_training_20261111T070907Z.json
+# Stage 12 results: content-group summary and content-group-held-out metrics.
+!benchmarks/results/audio_content_groups_20261111.json
+!benchmarks/results/audio_training_20261111T181213Z.json
 

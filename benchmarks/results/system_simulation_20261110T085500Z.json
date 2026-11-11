@@ -1,0 +1,247 @@
+{
+  "benchmark": "system",
+  "kind": "software_decision_path_simulation",
+  "generated_at": "2026-11-10T08:47:07.414177+00:00",
+  "command": [
+    "scripts\\benchmark_system.py",
+    "--output",
+    "benchmarks\\results\\system_simulation_20261110T085500Z.json"
+  ],
+  "environment": {
+    "python": "3.12.5",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 142 Stepping 12, GenuineIntel",
+    "cpu_count": 4,
+    "ram_total_gb": 7.86,
+    "ram_available_gb": 1.43,
+    "torch": "2.10.0+cpu",
+    "cuda_available": false,
+    "ultralytics": "8.4.22"
+  },
+  "model_inference_included": false,
+  "camera_or_microphone_included": false,
+  "caveat": "Synthetic evidence is fed directly into the dashboard view-model. Wall timings are Python decision-path costs. Simulated seconds come from FakeClock and are not wall-clock measurements of a live system.",
+  "resource_note": "CPU/RAM are single psutil samples. cpu_percent(interval=None) compares against the previous call, so the first sample can be 0.0 or stale; process_ram_mb is resident memory and includes interpreter imports.",
+  "scenario": {
+    "approach": "Road 2",
+    "step_s": 0.1,
+    "duration_s": 40.0,
+    "evidence_until_s": 12.0,
+    "refresh_s": 1.5,
+    "video_confidence": 0.9,
+    "audio_confidence": 0.92,
+    "signal": {
+      "activation_threshold": 0.65,
+      "release_threshold": 0.5,
+      "min_confirmation_s": 1.0,
+      "release_grace_s": 2.0,
+      "max_priority_s": 30.0,
+      "min_green_s": 5.0,
+      "yellow_s": 3.0,
+      "all_red_s": 2.0,
+      "fail_safe_state": "ALL_RED"
+    },
+    "fusion": {
+      "policy": "AUDIO",
+      "stale_after_s": 3.0,
+      "debounce_s": 1.0,
+      "adaptive_window_s": 1.0
+    },
+    "approaches": [
+      "Road 1",
+      "Road 2",
+      "Road 3",
+      "Road 4"
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "idle",
+      "evidence_enabled": false,
+      "wall_latency": {
+        "start_ms": 0.136,
+        "observe_video_ms": {
+          "count": 0,
+          "mean_ms": null,
+          "median_ms": null,
+          "p95_ms": null,
+          "max_ms": null
+        },
+        "observe_audio_ms": {
+          "count": 0,
+          "mean_ms": null,
+          "median_ms": null,
+          "p95_ms": null,
+          "max_ms": null
+        },
+        "tick_ms": {
+          "count": 400,
+          "mean_ms": 0.1341,
+          "median_ms": 0.0962,
+          "p95_ms": 0.2449,
+          "max_ms": 0.7114
+        },
+        "transition_tick_ms": {
+          "count": 0,
+          "mean_ms": null,
+          "median_ms": null,
+          "p95_ms": null,
+          "max_ms": null
+        },
+        "snapshot_ms": {
+          "count": 200,
+          "mean_ms": 0.082,
+          "median_ms": 0.0681,
+          "p95_ms": 0.1092,
+          "max_ms": 0.9143
+        }
+      },
+      "simulated_timeline": {
+        "evidence_at_s": null,
+        "fusion_active_at_s": null,
+        "green_at_s": null,
+        "activation_delay_s": null,
+        "yellow_at_s": null,
+        "green_duration_s": null,
+        "red_at_s": null,
+        "normal_at_s": null,
+        "clearance_duration_s": null,
+        "signal_transitions": [],
+        "time_is_simulated": true
+      },
+      "counters": {
+        "ticks": 400,
+        "evidence_submissions": 0,
+        "signal_transitions": 0,
+        "event_log_entries": 1,
+        "final_status": "Dashboard started",
+        "final_fault": false
+      },
+      "resources": {
+        "before": {
+          "timestamp": 1794300433.0791667,
+          "cpu_percent": 91.0,
+          "system_ram_percent": 84.0,
+          "system_ram_used_mb": 6760.2109375,
+          "process_ram_mb": 203.15625
+        },
+        "after": {
+          "timestamp": 1794300433.1513982,
+          "cpu_percent": 100.0,
+          "system_ram_percent": 84.2,
+          "system_ram_used_mb": 6771.859375,
+          "process_ram_mb": 203.19140625
+        },
+        "process_ram_delta_mb": 0.0352
+      },
+      "wall_seconds": 0.05563
+    },
+    {
+      "name": "emergency",
+      "evidence_enabled": true,
+      "wall_latency": {
+        "start_ms": 0.1281,
+        "observe_video_ms": {
+          "count": 9,
+          "mean_ms": 0.0392,
+          "median_ms": 0.0312,
+          "p95_ms": 0.0725,
+          "max_ms": 0.0725
+        },
+        "observe_audio_ms": {
+          "count": 9,
+          "mean_ms": 0.0212,
+          "median_ms": 0.0163,
+          "p95_ms": 0.0448,
+          "max_ms": 0.0448
+        },
+        "tick_ms": {
+          "count": 400,
+          "mean_ms": 0.1489,
+          "median_ms": 0.0972,
+          "p95_ms": 0.3112,
+          "max_ms": 1.169
+        },
+        "transition_tick_ms": {
+          "count": 4,
+          "mean_ms": 0.3185,
+          "median_ms": 0.2827,
+          "p95_ms": 0.4596,
+          "max_ms": 0.4596
+        },
+        "snapshot_ms": {
+          "count": 200,
+          "mean_ms": 0.0576,
+          "median_ms": 0.0387,
+          "p95_ms": 0.0906,
+          "max_ms": 0.6657
+        }
+      },
+      "simulated_timeline": {
+        "evidence_at_s": 0.0,
+        "fusion_active_at_s": 0.1,
+        "green_at_s": 2.0,
+        "activation_delay_s": 2.0,
+        "yellow_at_s": 17.1,
+        "green_duration_s": 15.1,
+        "red_at_s": 20.1,
+        "normal_at_s": 22.1,
+        "clearance_duration_s": 5.0,
+        "signal_transitions": [
+          {
+            "simulated_time_s": 2.0,
+            "approach": "Road 2",
+            "from": "normal/red",
+            "to": "emergency_priority/green"
+          },
+          {
+            "simulated_time_s": 17.1,
+            "approach": "Road 2",
+            "from": "emergency_priority/green",
+            "to": "clearing/yellow"
+          },
+          {
+            "simulated_time_s": 20.1,
+            "approach": "Road 2",
+            "from": "clearing/yellow",
+            "to": "clearing/red"
+          },
+          {
+            "simulated_time_s": 22.1,
+            "approach": "Road 2",
+            "from": "clearing/red",
+            "to": "normal/red"
+          }
+        ],
+        "time_is_simulated": true
+      },
+      "counters": {
+        "ticks": 400,
+        "evidence_submissions": 18,
+        "signal_transitions": 4,
+        "event_log_entries": 7,
+        "final_status": "signal RED in normal: clearance complete",
+        "final_fault": false
+      },
+      "resources": {
+        "before": {
+          "timestamp": 1794300433.1523952,
+          "cpu_percent": 0.0,
+          "system_ram_percent": 84.2,
+          "system_ram_used_mb": 6771.92578125,
+          "process_ram_mb": 203.2734375
+        },
+        "after": {
+          "timestamp": 1794300433.2272694,
+          "cpu_percent": 85.7,
+          "system_ram_percent": 84.2,
+          "system_ram_used_mb": 6772.03515625,
+          "process_ram_mb": 203.27734375
+        },
+        "process_ram_delta_mb": 0.0039
+      },
+      "wall_seconds": 0.062412
+    }
+  ],
+  "output": "benchmarks\\results\\system_simulation_20261110T085500Z.json"
+}
