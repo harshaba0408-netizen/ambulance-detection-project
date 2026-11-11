@@ -270,12 +270,13 @@ harness.
 | Audio latency | not measured | 173.21 ms median end-to-end | New measured harness |
 | System decision path | not measured | 0.0972 ms median tick | New measured harness |
 | System activation | not measured | 2.0 simulated seconds | Deterministic scenario result |
-| Tests | 16 passed | 398 passed | 351 Stage 9 + 16 Stage 10 + 31 Stage 11–12 |
+| Tests | 16 passed | 416 passed | 351 Stage 9 + 16 Stage 10 + 31 Stage 11–12 + 18 Stage 14 |
 | Coverage | unmeasured | 92% statements in `src/ambulance_system` | Stage 9; statement coverage only |
 | Audio duplicates | 4 pairs | 4 pairs excluded from the split | Detection + exclusion; quarantine not executed |
+| Hardware boundary | modeled in code | simulation + mock controllers, 18 tests | No physical hardware opened or tested |
 
 **Test-count provenance:** measured by `.\venv\Scripts\python.exe -m pytest -q`
-on 2026-11-11: `398 passed, 1 warning in 42.38s`. The last coverage rerun with
+on 2026-11-12: `416 passed, 1 warning in 46.05s`. The last coverage rerun with
 `--cov=src/ambulance_system` passed 388 tests and reported 92% (221 missed of
 2778 statements). No test was removed, skipped or weakened.
 

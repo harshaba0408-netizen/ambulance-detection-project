@@ -1,11 +1,11 @@
 # Advanced Development Roadmap
 ## AI Ambulance Detection & Adaptive Traffic Signal Priority System
 
-**Document status:** living implementation roadmap - Stage 11 implemented 2026-11-11 (content-group split)
-**Date:** 2026-11-09 (last updated 2026-11-11)
-**Baseline commit:** `8bbb3da3c08c1215ff46f62984e6097b6584c710` (`main` = `origin/main`)
+**Document status:** living implementation roadmap - Stage 11 implemented 2026-11-11 (content-group split); Stage 14 implemented 2026-11-12 (simulation/mock hardware boundary)
+**Date:** 2026-11-09 (last updated 2026-11-12)
+**Baseline commit:** `8b10f1bd79c5783a84aac8e313ba06a898cfa3d6` (`main` = `origin/main` at the start of Stage 14)
 **Companion document:** [`BASELINE_AUDIT.md`](BASELINE_AUDIT.md) — all measured facts referenced here come from that audit.
-**Source code changed so far:** Stages 2–11 are implemented; the working tree is not committed. See Stage 2–11 sections for delivered files.
+**Source code changed so far:** Stages 2–14 are implemented. See each stage section for delivered files.
 
 > This is a **software prototype and simulation**. Nothing in this roadmap authorises connection to public traffic infrastructure, physical relays or real signal controllers. Every stage keeps the system in simulation or, at most, an isolated low-voltage lab mock.
 
@@ -140,7 +140,7 @@ Rules the design must enforce:
 
 ## 4. Test status and quality gap
 
-**Baseline at Stage 1:** 16 collected, 16 passed, 0 failed, 0 skipped, 1 Librosa deprecation warning, 40.53 s. **Current (2026-11-11):** 398 passed, 1 warning, 42.38 s plain run; 92% statement coverage (221 missed of 2778) measured with the 388-test suite.
+**Baseline at Stage 1:** 16 collected, 16 passed, 0 failed, 0 skipped, 1 Librosa deprecation warning, 40.53 s. **Current (2026-11-12):** 416 passed, 1 warning, 46.05 s plain run; 92% statement coverage (221 missed of 2778) measured with the 388-test suite.
 
 | Area | Existing tests | Real coverage of production code | Gap |
 |---|---:|---|---|
@@ -442,11 +442,13 @@ Deliverable is a self-contained offline experiment: mathematical derivation, syn
 ---
 
 ### Stage 14 — Hardware abstraction (simulation + mock only)
-**Status:** ready after Stage 3. **Complexity: M (2–3 days).**
+**Status:** implemented 2026-11-12. **Complexity: M (2–3 days).**
 
-Create: `src/ambulance_system/hardware/controller.py` (interface), `simulation.py` (default), `mock.py` (in-memory), `docs/hardware_integration.md`, tests for connect/disconnect and safe defaults.
+Delivered: `src/ambulance_system/hardware/controller.py` (interface, safe defaults, `HardwareCommand`), `simulation.py` (default in-memory controller with timestamped history), `mock.py` (programmable test double), `tests/test_hardware.py` (18 tests) and [`hardware_integration.md`](hardware_integration.md).
 
-No GPIO, no relays, no serial device is opened by default. Any future physical prototype must be isolated low-voltage lab equipment with manual supervision and emergency shutdown.
+Every controller starts disconnected and all-red, forces red on connect/disconnect, rejects commands while disconnected, and leaves the recorded state unchanged if a transport write fails. A source-scan test rejects device-transport imports.
+
+No GPIO, relay, serial or network device is opened by default. The abstraction is not wired into the dashboard. Any future physical prototype must be isolated low-voltage lab equipment with manual supervision and an independent emergency shutdown. **No physical hardware has been tested.**
 
 ---
 
@@ -498,7 +500,7 @@ There is a duplicate local checkpoint `Yovov8l_Amubalce_trained.pt` (87.6 MB, di
 | Authorised RTSP test stream | Verified live streaming (Stage 5) | — | **Required** |
 | Optional 2-mic array | GCC-PHAT research (Stage 13) | Hardware purchase | **Required** |
 
-Stage 10 is complete. Stage 11 tooling is implemented, and the audio follow-up (Stage 12 in the working plan) stores a content-group split/training result; source provenance remains unverified. Stages 14-15 remain executable on this machine without external resources, while the vision Stage 12 retraining remains resource-blocked. `pytest-cov` is installed and no longer a blocker.
+Stage 10 is complete. Stage 11 tooling and the Stage 12 audio follow-up are implemented; source provenance remains unverified. Stage 14 (hardware simulation/mock boundary) is implemented. Stage 15 docs/release and the optional Stage 13 research remain; the vision Stage 12 retraining remains resource-blocked. `pytest-cov` is installed and no longer a blocker.
 
 ---
 
@@ -561,7 +563,7 @@ Stage 10 benchmarks + comparison report          ← complete
 Stage 11 audio data remediation                 ← implemented (content-group split; provenance unverified)
 Stage 12 vision retraining                      ← blocked: disk / GPU / licensed data
 Stage 13 GCC-PHAT (optional)
-Stage 14 hardware abstraction (simulation only)
+Stage 14 hardware abstraction (simulation only)  ← complete
 Stage 15 docs, release, research report
 ```
 

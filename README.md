@@ -142,6 +142,7 @@ ambulance-detection-project/
 │   ├── fusion/                        # Multimodal evidence policies
 │   ├── traffic_signal/                # State machine and cross-approach arbiter
 │   ├── monitoring/                    # FPS, latency and resource metrics
+│   ├── hardware/                      # Simulation/mock signal-output boundary only
 │   └── dashboard/                     # View-model, Tk widgets, application shell
 │
 ├── scripts/                           # Evaluation and benchmark harnesses
@@ -150,13 +151,14 @@ ambulance-detection-project/
 │   ├── benchmark_audio.py             # Siren classifier (resubstitution) + latency
 │   ├── benchmark_system.py            # Dashboard decision path with FakeClock
 │   ├── audio_integrity.py             # Read-only audio audit + opt-in quarantine
+│   ├── audio_content_groups.py        # Read-only acoustic content grouping
 │   ├── make_audio_split.py            # Deterministic leakage-aware audio split
 │   ├── train_audio.py                 # Experiment-only classifier training
 │   └── benchmark_common.py            # Shared formatting and provenance helpers
 ├── benchmarks/                        # Stored measurement results
 │   └── results/                       # Timestamped JSON, traceable to a command
 │
-├── tests/                             # Automated test suite (398 tests)
+├── tests/                             # Automated test suite (416 tests)
 │   ├── test_yolo_detection.py         # Legacy vision tests
 │   ├── test_audio_classification.py   # Legacy audio tests
 │   ├── test_traffic_signal_logic.py   # Legacy coordinator tests
@@ -259,16 +261,16 @@ python test_siren.py
 
 ## 🧪 Automated Testing
 
-The project includes **398 automated unit and integration tests** covering configuration, events, clock, logging, YOLO detection, video sources and pipeline metrics, audio features/classifier/streaming, multimodal fusion, the signal state machine and arbiter, benchmark helpers, audio provenance tooling, and the dashboard view-model, widgets and application shell.
+The project includes **416 automated unit and integration tests** covering configuration, events, clock, logging, YOLO detection, video sources and pipeline metrics, audio features/classifier/streaming, multimodal fusion, the signal state machine and arbiter, benchmark helpers, audio provenance tooling, the hardware simulation/mock boundary, and the dashboard view-model, widgets and application shell.
 
 Run the suite with:
 ```powershell
 .\venv\Scripts\python.exe -m pytest -q
 ```
 
-Full run on 2026-11-11 (Python 3.12.5, CPU-only Windows):
+Full run on 2026-11-12 (Python 3.12.5, CPU-only Windows):
 ```
-398 passed, 1 warning in 42.38s
+416 passed, 1 warning in 46.05s
 ```
 The last coverage rerun (388-test suite) took 50.23 s. Earlier runs on 2026-11-10 took 59.48–103.55 s for the then-current 367 tests; the pass count was unchanged within each run. Times vary with machine load.
 
@@ -354,7 +356,7 @@ The Stage 12 result is **content-group-held-out**, not source-independent: the d
 
 ## ⚠️ Limitations & Future Enhancements
 
-- **Hardware Deployment:** Currently simulated via a software GUI. Future work can interface directly with physical microcontrollers (e.g., Arduino / Raspberry Pi / ESP32) using GPIO pins or RS-485 serial relays.
+- **Hardware Deployment:** The runtime is a software simulation. A Stage 14 `HardwareController` interface with `SimulationController` (default) and `MockController` now exists, but it never opens GPIO, relays, serial or network devices and is not wired into the dashboard. Any physical prototype needs isolated low-voltage lab hardware, manual supervision and an independent emergency shutdown. See [`docs/hardware_integration.md`](docs/hardware_integration.md).
 - **Audio Provenance:** The 400 WAV files have no source, session or licence metadata beyond an ffmpeg encoder tag. The Stage 12 split holds out 234 acoustic content groups, but it is not source-independent, and the audio should not be redistributed until its licence is confirmed. See [`docs/AUDIO_DATASET_PROVENANCE.md`](docs/AUDIO_DATASET_PROVENANCE.md).
 - **Directional Audio Sensing:** The current audio pipeline detects siren presence but does not compute Angle-of-Arrival (AoA). Integrating a microphone array with Generalized Cross-Correlation (GCC-PHAT) would enable directional acoustic localization.
 - **Occlusion Handling:** Heavy multi-vehicle occlusions can be mitigated by combining aerial or multi-camera fusion at larger intersections.

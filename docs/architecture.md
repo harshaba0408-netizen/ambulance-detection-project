@@ -122,3 +122,21 @@ stateDiagram-v2
 
 > **Implemented behaviour note (Stage 8):** `new.py` is now a thin launcher for `ambulance_system.dashboard.app`. The dashboard's headless view-model owns a `FusionEngine` and the Stage 3 `SignalController`; audio and video evidence expires after `fusion.stale_after_s`, the controller applies activation/release hysteresis and transition timing, and only one approach can hold GREEN. Detection flags are no longer latched: priority is released when evidence goes stale or the release rules are met. **Clear All** remains a manual full reset (sources, evidence, metrics, signals and policies), and **Simulate Fault** forces all-red until **Clear Fault**. See [`dashboard.md`](dashboard.md), [`fusion.md`](fusion.md) and [`signal_state_machine.md`](signal_state_machine.md).
 
+## 5. Hardware Boundary (Stage 14)
+
+The signal controller is separated from any physical output by `ambulance_system.hardware`:
+
+```text
+FusionEngine → SignalController → HardwareController (interface)
+                                   ├── SimulationController  (default, in-memory)
+                                   └── MockController        (tests only)
+```
+
+* The interface exposes `connect`, `disconnect`, `apply`, `apply_all_red` and `snapshot`.
+* `SimulationController` records timestamped commands and never opens a device.
+* Every controller starts disconnected and all-red; a colour is only accepted while connected.
+* The hardware layer does not validate phase transitions; that stays in `traffic_signal`.
+* It is **not** wired into the dashboard, and no GPIO, relay, serial or network device is imported.
+
+A physical adapter is future work and must keep the same safe defaults plus an independent emergency shutdown. See [`hardware_integration.md`](hardware_integration.md).
+

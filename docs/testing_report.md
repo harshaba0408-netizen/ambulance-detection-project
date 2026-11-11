@@ -3,11 +3,11 @@
 
 > **Baseline document (Stage 1).** The tables below describe the original
 > 16-test suite and remain as the frozen starting point. The current suite has
-> **398 tests** (398 passed, 1 warning on 2026-11-11; the last coverage run with
+> **416 tests** (416 passed, 1 warning on 2026-11-12; the last coverage run with
 > the 388-test suite reported **92% statement coverage**, 221 missed of 2778
 > statements). See section 6 for the Stage 9 coverage report, section 7 for the
 > Stage 10 benchmark-harness tests, section 8 for the Stage 11–12 provenance
-> tests, and
+> tests, section 9 for the Stage 14 hardware-abstraction tests, and
 > [`ADVANCED_DEVELOPMENT_ROADMAP.md`](ADVANCED_DEVELOPMENT_ROADMAP.md) for the
 > stage status.
 
@@ -216,14 +216,14 @@ Manifest enforcement is tested without any claim that a manifest is truthful:
 the tests prove the generator enforces the supplied grouping, not that the
 grouping reflects real recording sessions or sources.
 
-Measured on 2026-11-11:
+Measured on 2026-11-12:
 
 ```powershell
 .\venv\Scripts\python.exe -m pytest -q
 ```
 
 ```
-398 passed, 1 warning in 42.38s
+416 passed, 1 warning in 46.05s
 ```
 
 Coverage rerun (388-test suite; the Stage 12 additions are script/CSV tests and
@@ -240,4 +240,35 @@ TOTAL   2778 statements   221 missed   92%
 
 The new tests cover `scripts/`, so the `src/` statement denominator stays at
 2778. No legacy test was modified, skipped or weakened.
+
+---
+
+## 9. Stage 14 — Hardware Abstraction Tests
+
+Stage 14 added `tests/test_hardware.py`, 18 tests for the software-only
+`HardwareController` boundary. No test opens a GPIO, relay, serial or network
+device; the controllers are in-memory and deterministic.
+
+Covered:
+
+* initial disconnected/all-red state and the `approaches` validation rules;
+* idempotent `connect()` and the all-red safe state;
+* colour application updating the snapshot and the timestamped history;
+* rejection of an unknown approach, a non-`SignalColor` value and any command
+  while disconnected;
+* snapshot isolation (callers cannot mutate internal state);
+* `disconnect()` forcing red, blocking further writes and being idempotent;
+* `apply_all_red()` while connected (records commands) and while disconnected
+  (safe state only);
+* context-manager connect/disconnect;
+* the base class rejecting `apply()` because it has no transport;
+* `MockController` call recording, `reset()`, connect failure and write failure
+  leaving the previous safe state;
+* structural conformance to the `HardwareController` protocol;
+* the factory rejecting an unknown controller kind;
+* a source scan that fails if the hardware package imports a device-transport
+  library (`serial`, `RPi`, `gpiozero`, `smbus`, `spidev`, `socket`).
+
+**No physical hardware was tested.** These tests prove the interface and safe
+defaults only; see [`hardware_integration.md`](hardware_integration.md).
 
