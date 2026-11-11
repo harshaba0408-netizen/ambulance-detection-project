@@ -140,3 +140,23 @@ FusionEngine → SignalController → HardwareController (interface)
 
 A physical adapter is future work and must keep the same safe defaults plus an independent emergency shutdown. See [`hardware_integration.md`](hardware_integration.md).
 
+## 6. Offline Direction Research (Stage 13, Experimental)
+
+`ambulance_system.localisation` is a separate, offline branch:
+
+```text
+two synchronised channels → GCC-PHAT TDOA → far-field bearing
+```
+
+* `gcc_phat.py` estimates the delay between two channels with a phase-transform
+  cross-correlation.
+* `doa.py` converts pair delays into a bearing, or solves a 2-D bearing from two
+  or more non-collinear pairs.
+* `simulation.py` generates synthetic plane-wave and two-source signals with
+  known delays for tests and the benchmark.
+
+The branch is **not imported by fusion, the signal controller or the dashboard**.
+It does not identify sirens, does not assign an approach and does not produce a
+geographic position. Its only published results are synthetic free-field method
+checks. See [`localisation.md`](localisation.md).
+

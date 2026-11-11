@@ -109,4 +109,6 @@ benchmarks/results/*
 # Stage 12 results: content-group summary and content-group-held-out metrics.
 !benchmarks/results/audio_content_groups_20261111.json
 !benchmarks/results/audio_training_20261111T181213Z.json
+# Stage 13 result: synthetic GCC-PHAT method check (no array or real audio used).
+!benchmarks/results/localisation_synthetic_20261111T191746Z.json
 

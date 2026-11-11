@@ -3,11 +3,12 @@
 
 > **Baseline document (Stage 1).** The tables below describe the original
 > 16-test suite and remain as the frozen starting point. The current suite has
-> **416 tests** (416 passed, 1 warning on 2026-11-12; the last coverage run with
-> the 388-test suite reported **92% statement coverage**, 221 missed of 2778
-> statements). See section 6 for the Stage 9 coverage report, section 7 for the
-> Stage 10 benchmark-harness tests, section 8 for the Stage 11–12 provenance
-> tests, section 9 for the Stage 14 hardware-abstraction tests, and
+> **443 tests** (443 passed, 1 warning on 2026-11-12; the same run with coverage
+> reported **92% statement coverage**, 255 missed of 3259 statements). See
+> section 6 for the Stage 9 coverage report, section 7 for the Stage 10
+> benchmark-harness tests, section 8 for the Stage 11–12 provenance tests,
+> section 9 for the Stage 14 hardware-abstraction tests, section 10 for the
+> Stage 13 localisation tests, and
 > [`ADVANCED_DEVELOPMENT_ROADMAP.md`](ADVANCED_DEVELOPMENT_ROADMAP.md) for the
 > stage status.
 
@@ -216,7 +217,7 @@ Manifest enforcement is tested without any claim that a manifest is truthful:
 the tests prove the generator enforces the supplied grouping, not that the
 grouping reflects real recording sessions or sources.
 
-Measured on 2026-11-12:
+Measured on 2026-11-12 at Stage 11–12 completion (superseded by section 10):
 
 ```powershell
 .\venv\Scripts\python.exe -m pytest -q
@@ -271,4 +272,57 @@ Covered:
 
 **No physical hardware was tested.** These tests prove the interface and safe
 defaults only; see [`hardware_integration.md`](hardware_integration.md).
+
+---
+
+## 10. Stage 13 — GCC-PHAT Localisation Tests
+
+Stage 13 added `tests/test_gcc_phat.py`, 27 tests for the offline direction
+experiment. They use generated NumPy signals only; no microphone array, audio
+file or device is opened.
+
+Covered:
+
+* recovery of known integer and fractional delays, including the positive
+  “moving arrives later” sign convention;
+* zero-delay identity, correlation-axis ordering, peak normalisation and the
+  `max_delay_s` search bound;
+* invalid inputs: non-1-D or too-short arrays, NaN, zero variance, invalid
+  sample rates, interpolation, search bounds and peak counts;
+* two synthetic independent sources producing two detectable delay peaks;
+* pair-bearing round trips from −75° to +75°, broadside zero, clipping and
+  rejection of physically impossible delays;
+* a 2-D three-sensor array solved from exact delays and from synthetic signals;
+* rejection of collinear geometry, unknown microphone names and fewer than two
+  observations;
+* deterministic simulation with a seeded generator, integer-delay equivalence
+  of the FFT phase shift, broadside/endfire arrival-time signs, and simulation
+  input validation;
+* a source scan that fails if the localisation package imports fusion, the
+  signal controller, the dashboard, the hardware package, an audio device
+  library or scikit-learn.
+
+The synthetic benchmark is a method check, not field accuracy. See
+[`localisation.md`](localisation.md) for the derivation and limitations.
+
+Measured on 2026-11-12 after adding these tests:
+
+```powershell
+.\venv\Scripts\python.exe -m pytest -q
+```
+
+```text
+443 passed, 1 warning in 40.20s
+```
+
+```powershell
+.\venv\Scripts\python.exe -m pytest -q --cov=src/ambulance_system --cov-report=term-missing
+```
+
+```text
+443 passed, 1 warning in 66.40s
+TOTAL   3259 statements   255 missed   92%
+```
+
+No legacy test was modified, skipped or weakened.
 

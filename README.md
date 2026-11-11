@@ -4,10 +4,12 @@
 [![YOLOv8](https://img.shields.io/badge/YOLOv8-Ultralytics-orange.svg)](https://docs.ultralytics.com/)
 [![OpenCV](https://img.shields.io/badge/OpenCV-Computer%20Vision-green.svg)](https://opencv.org/)
 [![Librosa](https://img.shields.io/badge/Librosa-Audio%20Processing-yellow.svg)](https://librosa.org/)
-[![Tests](https://img.shields.io/badge/Tests-388%20Passed%20(100%25)-brightgreen.svg)]()
-[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
+[![Tests](https://img.shields.io/badge/Tests-443%20Passed%20(100%25)-brightgreen.svg)]()
+[![License: MIT](https://img.shields.io/badge/License-MIT-lightgrey.svg)](LICENSE)
 
 An end-to-end edge AI system that combines **deep learning computer vision (YOLOv8 Large)** and **acoustic machine learning (MFCC + Random Forest)** to dynamically prioritize traffic signals at urban intersections for approaching emergency ambulances.
+
+> **Project status (release `0.3.0`):** a modular, tested, CPU-only **research prototype**. It runs a software signal simulation and does not drive physical traffic hardware. Audio results are content-group-held-out, not source-independent. Read [`docs/limitations.md`](docs/limitations.md) and [`docs/research_report.md`](docs/research_report.md) before quoting any metric.
 
 ---
 
@@ -15,16 +17,16 @@ An end-to-end edge AI system that combines **deep learning computer vision (YOLO
 
 Emergency vehicles in developing urban areas frequently experience severe traffic congestion, leading to delayed patient hospital arrival times. Traditional traffic lights follow rigid fixed-time schedules or simple induction loops that cannot distinguish emergency vehicles from general commuter traffic. 
 
-This project solves that challenge by implementing a multimodal edge AI solution that:
-1. **Visually identifies ambulances** from CCTV/traffic camera video feeds in real time.
+This project implements a multimodal edge AI prototype that:
+1. **Visually identifies ambulances** in traffic-camera video.
 2. **Acoustically identifies sirens** using audio frequency feature analysis to detect approaching ambulances even before they enter the camera's field of view or when obscured by large vehicles.
-3. **Coordinates a 4-way intersection signal controller** to dynamically grant immediate green-light passage to the approach with the emergency vehicle while holding other lanes at red.
+3. **Coordinates a simulated 4-way intersection signal controller** to grant priority green to the approach with the emergency vehicle while holding other lanes at red.
 
 ---
 
 ## 🚀 Key Features
 
-- **YOLOv8 Large Deep Learning Model:** Fine-tuned for ambulance detection, early-stopped after 187 epochs (200 configured), achieving **87.39% Precision** and **74.23% mAP@50** at the best epoch.
+- **YOLOv8 Large Deep Learning Model:** Fine-tuned for ambulance detection, early-stopped after 187 epochs (200 configured). The checkpoint's embedded best-epoch metadata reports **87.39% Precision** and **74.23% mAP@50**; see the independent 5-image test-split result below and the caveats in [`docs/model_evaluation.md`](docs/model_evaluation.md).
 - **Acoustic Siren Classifier:** Extracts 40-dimensional Mel-Frequency Cepstral Coefficients (MFCC) processed through an optimized Random Forest classifier to distinguish sirens from ambient city and engine noises.
 - **Multimodal Decision Policies:** Configurable per approach:
   - `AUDIO`: Triggers priority green signal upon acoustic siren confirmation.
@@ -33,8 +35,8 @@ This project solves that challenge by implementing a multimodal edge AI solution
   - `ADAPTIVE`: `BOTH` plus a tighter time window; never looser than `BOTH`.
 - **Interactive 4-Approach Dashboard:** Full-featured desktop GUI (Tkinter + OpenCV) visualizing 4 simultaneous road feeds, live preview with bounding boxes, audio/video confidence, fused state, signal phase, FPS/latency, system health, timestamped event history, and manual start/stop/fault controls.
 - **Evidence Capture (single-stream pipeline):** `ambulance_and_siren_integration.py` writes timestamped snapshots to `evidence/` when visual and audio detections are both confirmed. In the 4-road dashboard, priority is released by fusion staleness and signal hysteresis; **Clear All** remains a manual full reset.
-- **Fully Automated Pytest Suite:** 388 unit and integration tests covering vision, audio, video pipeline, fusion, signal state machine, configuration, logging, metrics, benchmark helpers, audio provenance tooling, and the dashboard view-model, widgets and application shell.
-- **Traceable Benchmark Harness:** Three CLI scripts store timestamped JSON results with environment, model hashes, commands and configuration. They report measured vision, audio and software decision-path numbers without claiming retraining or real-world traffic benefit; see [`docs/BASELINE_VS_IMPROVED.md`](docs/BASELINE_VS_IMPROVED.md).
+- **Fully Automated Pytest Suite:** 443 unit and integration tests covering vision, audio, video pipeline, fusion, signal state machine, configuration, logging, metrics, benchmark helpers, audio provenance tooling, the hardware simulation/mock boundary, the experimental GCC-PHAT module, and the dashboard view-model, widgets and application shell.
+- **Traceable Benchmark Harness:** Three runtime CLI scripts plus an experimental localisation script store timestamped JSON results with environment, model hashes, commands and configuration. They report measured vision, audio, software decision-path and synthetic direction numbers without claiming retraining, field localisation or real-world traffic benefit; see [`docs/BASELINE_VS_IMPROVED.md`](docs/BASELINE_VS_IMPROVED.md).
 
 ---
 
@@ -143,6 +145,7 @@ ambulance-detection-project/
 │   ├── traffic_signal/                # State machine and cross-approach arbiter
 │   ├── monitoring/                    # FPS, latency and resource metrics
 │   ├── hardware/                      # Simulation/mock signal-output boundary only
+│   ├── localisation/                  # Experimental offline GCC-PHAT direction research
 │   └── dashboard/                     # View-model, Tk widgets, application shell
 │
 ├── scripts/                           # Evaluation and benchmark harnesses
@@ -150,6 +153,7 @@ ambulance-detection-project/
 │   ├── benchmark_vision.py            # Vision quality + validation-loop speed
 │   ├── benchmark_audio.py             # Siren classifier (resubstitution) + latency
 │   ├── benchmark_system.py            # Dashboard decision path with FakeClock
+│   ├── benchmark_localisation.py      # Synthetic GCC-PHAT method check (experimental)
 │   ├── audio_integrity.py             # Read-only audio audit + opt-in quarantine
 │   ├── audio_content_groups.py        # Read-only acoustic content grouping
 │   ├── make_audio_split.py            # Deterministic leakage-aware audio split
@@ -158,7 +162,7 @@ ambulance-detection-project/
 ├── benchmarks/                        # Stored measurement results
 │   └── results/                       # Timestamped JSON, traceable to a command
 │
-├── tests/                             # Automated test suite (416 tests)
+├── tests/                             # Automated test suite (443 tests)
 │   ├── test_yolo_detection.py         # Legacy vision tests
 │   ├── test_audio_classification.py   # Legacy audio tests
 │   ├── test_traffic_signal_logic.py   # Legacy coordinator tests
@@ -176,7 +180,11 @@ ambulance-detection-project/
 │   ├── testing_report.md
 │   ├── AUDIO_DATASET_PROVENANCE.md
 │   ├── BASELINE_VS_IMPROVED.md
-│   └── ...
+│   ├── localisation.md
+│   ├── hardware_integration.md
+│   ├── limitations.md
+│   ├── research_report.md
+│   └── release_notes.md
 │
 └── data/
     ├── ambulance_images/              # 117 Roboflow YOLOv8 annotated images (published in full)
@@ -261,7 +269,7 @@ python test_siren.py
 
 ## 🧪 Automated Testing
 
-The project includes **416 automated unit and integration tests** covering configuration, events, clock, logging, YOLO detection, video sources and pipeline metrics, audio features/classifier/streaming, multimodal fusion, the signal state machine and arbiter, benchmark helpers, audio provenance tooling, the hardware simulation/mock boundary, and the dashboard view-model, widgets and application shell.
+The project includes **443 automated unit and integration tests** covering configuration, events, clock, logging, YOLO detection, video sources and pipeline metrics, audio features/classifier/streaming, multimodal fusion, the signal state machine and arbiter, benchmark helpers, audio provenance tooling, the hardware simulation/mock boundary, the experimental GCC-PHAT direction module, and the dashboard view-model, widgets and application shell.
 
 Run the suite with:
 ```powershell
@@ -270,9 +278,9 @@ Run the suite with:
 
 Full run on 2026-11-12 (Python 3.12.5, CPU-only Windows):
 ```
-416 passed, 1 warning in 46.05s
+443 passed, 1 warning in 40.20s
 ```
-The last coverage rerun (388-test suite) took 50.23 s. Earlier runs on 2026-11-10 took 59.48–103.55 s for the then-current 367 tests; the pass count was unchanged within each run. Times vary with machine load.
+The same run with coverage took 66.40 s. Earlier runs on 2026-11-10 took 59.48–103.55 s for the then-current 367 tests; the pass count was unchanged within each run. Times vary with machine load.
 
 The single warning is the existing Librosa `audioread` deprecation notice triggered by the legacy invalid-path test; no test is skipped on a machine with a display and no assertion is weakened. The 16 legacy tests remain in `tests/test_yolo_detection.py`, `tests/test_audio_classification.py`, and `tests/test_traffic_signal_logic.py`.
 
@@ -285,7 +293,7 @@ Install the development-only tooling and run the same suite with coverage:
 .\venv\Scripts\python.exe -m pytest -q --cov=src/ambulance_system --cov-report=term-missing
 ```
 
-Measured result on 2026-11-11 (388-test suite): **388 passed, 1 warning, 92% statement coverage** (`221` missed statements out of `2778`). The Stage 12 tests add 10 provenance checks; they do not change these source-coverage figures. Selected module results:
+Measured result on 2026-11-12 (443-test suite): **443 passed, 1 warning, 92% statement coverage** (`255` missed statements out of `3259`). Selected module results:
 
 | Module | Coverage |
 |---|---:|
@@ -296,6 +304,9 @@ Measured result on 2026-11-11 (388-test suite): **388 passed, 1 warning, 92% sta
 | `events.py` | 100% |
 | `config.py` | 96% |
 | `fusion/engine.py` | 97% |
+| `hardware/controller.py`, `simulation.py`, `mock.py` | 100% |
+| `localisation/gcc_phat.py` | 95% |
+| `localisation/doa.py` | 90% |
 
 The lower `app.py` figure is honest: model loading, file dialogs, real video/audio worker threads and `main()` are not exercised by unit tests. The rendering widgets are tested with a hidden Tk window; those tests skip with a clear reason on a machine without a display. Coverage measures executed statements only, not traffic-control correctness.
 
@@ -303,7 +314,7 @@ The dashboard logic is tested through `DashboardViewModel` without a display, mo
 
 ### Benchmarks
 
-Three CLI harnesses store timestamped JSON under `benchmarks/results/`. Each file records the environment, command, configuration and model hash (where applicable), so a number can be traced and rerun.
+Three runtime CLI harnesses store timestamped JSON under `benchmarks/results/`. Each file records the environment, command, configuration and model hash (where applicable), so a number can be traced and rerun. A fourth, experimental harness stores the synthetic localisation method check; it is not a runtime measurement.
 
 ```powershell
 # Vision quality + validation-loop speed (5-image test split, conf=0.001)
@@ -314,17 +325,21 @@ Three CLI harnesses store timestamped JSON under `benchmarks/results/`. Each fil
 
 # Synthetic evidence through DashboardViewModel + FakeClock; no model inference
 .\venv\Scripts\python.exe scripts\benchmark_system.py
+
+# Experimental: synthetic two-channel GCC-PHAT; no microphone array
+.\venv\Scripts\python.exe scripts\benchmark_localisation.py
 ```
 
-Measured on this CPU (2026-11-10):
+Measured on this CPU (2026-11-10 to 2026-11-12):
 
 | Harness | Stored result | Headline measurement |
 |---|---|---|
 | Vision | `vision_test_640_20261110T084458Z.json` | precision 0.9207, recall 0.4000, mAP@50 0.5217, mAP@50-95 0.4088; 2632.54 ms/image pipeline (0.3799 images/s) |
 | Audio | `audio_resubstitution_20261110T083904Z.json` | resubstitution accuracy / precision / recall / F1 1.0000, FPR 0.0000; 173.21 ms median end-to-end |
 | System | `system_simulation_20261110T085500Z.json` | 0.0972 ms median `tick()`; 2.0 s simulated activation delay; 5.0 s simulated clearance |
+| GCC-PHAT (experimental, synthetic) | `localisation_synthetic_20261111T191746Z.json` | 1.16 µs delay MAE; 0.498° bearing MAE over 280 synthetic trials; no array used |
 
-These are **not** model-improvement or real-world traffic claims. The shipped vision checkpoint and shipped audio classifier were not retrained; the audio scores above are training-data fit; system timings exclude inference. Stage 11 adds a separate experiment-only classifier, reported below. Full provenance, baseline comparison and limitations are in [`docs/BASELINE_VS_IMPROVED.md`](docs/BASELINE_VS_IMPROVED.md).
+These are **not** model-improvement or real-world traffic claims. The shipped vision checkpoint and shipped audio classifier were not retrained; the audio scores above are training-data fit; system timings exclude inference; the localisation row is synthetic and disconnected from the priority decision. Stage 11 adds a separate experiment-only classifier, reported below. Full provenance, baseline comparison and limitations are in [`docs/BASELINE_VS_IMPROVED.md`](docs/BASELINE_VS_IMPROVED.md).
 
 ### Audio Provenance (Stage 11–12)
 
@@ -356,10 +371,14 @@ The Stage 12 result is **content-group-held-out**, not source-independent: the d
 
 ## ⚠️ Limitations & Future Enhancements
 
+The full register is in [`docs/limitations.md`](docs/limitations.md); the verified results and non-claims are in [`docs/research_report.md`](docs/research_report.md).
+
+- **Vision Dataset:** 117 images (102 / 10 / 5) with a single class. The 5-image test split and the embedded best-epoch checkpoint metrics are indicative, not a retraining result. Night, rain, heavy occlusion and camera diversity are not covered.
 - **Hardware Deployment:** The runtime is a software simulation. A Stage 14 `HardwareController` interface with `SimulationController` (default) and `MockController` now exists, but it never opens GPIO, relays, serial or network devices and is not wired into the dashboard. Any physical prototype needs isolated low-voltage lab hardware, manual supervision and an independent emergency shutdown. See [`docs/hardware_integration.md`](docs/hardware_integration.md).
-- **Audio Provenance:** The 400 WAV files have no source, session or licence metadata beyond an ffmpeg encoder tag. The Stage 12 split holds out 234 acoustic content groups, but it is not source-independent, and the audio should not be redistributed until its licence is confirmed. See [`docs/AUDIO_DATASET_PROVENANCE.md`](docs/AUDIO_DATASET_PROVENANCE.md).
-- **Directional Audio Sensing:** The current audio pipeline detects siren presence but does not compute Angle-of-Arrival (AoA). Integrating a microphone array with Generalized Cross-Correlation (GCC-PHAT) would enable directional acoustic localization.
-- **Occlusion Handling:** Heavy multi-vehicle occlusions can be mitigated by combining aerial or multi-camera fusion at larger intersections.
+- **Audio Provenance:** The 400 WAV files have no source, session or licence metadata beyond an ffmpeg encoder tag. Only 3 files have a confirmed source and licence; 394 have no verified source/licence. The Stage 12 split holds out 234 acoustic content groups, but it is not source-independent, and the audio should not be redistributed until its licence is confirmed. See [`docs/AUDIO_DATASET_PROVENANCE.md`](docs/AUDIO_DATASET_PROVENANCE.md).
+- **Directional Audio Sensing:** The runtime audio pipeline detects siren presence but does not compute Angle-of-Arrival (AoA) or a geographic position. Stage 13 adds an **experimental, offline** GCC-PHAT and far-field bearing test on synthetic two-channel signals; it is not wired into fusion or priority and no microphone array was available. See [`docs/localisation.md`](docs/localisation.md).
+- **Occlusion Handling:** Heavy multi-vehicle occlusions can be mitigated by combining aerial or multi-camera fusion at larger intersections; this is future work.
+- **Blocked Work:** Vision retraining needs disk, GPU, RAM, licensed diverse data and a training script. Source-independent audio evaluation needs a verified `session_id`/`source_id`/licence manifest. Neither was available on this machine.
 
 ---
 

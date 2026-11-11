@@ -1,6 +1,13 @@
 # Dataset Specification Report
 ## AI Ambulance Detection & Traffic Signal Priority System
 
+> **Status note (release `0.3.0`).** This report describes the data that exists.
+> It is not a claim that the data is sufficient or source-independent. The
+> vision test split has 5 images, and only 3 of the 400 audio files have a
+> confirmed source and licence. Read [`limitations.md`](limitations.md) and
+> [`AUDIO_DATASET_PROVENANCE.md`](AUDIO_DATASET_PROVENANCE.md) before quoting
+> any model metric derived from these datasets.
+
 ---
 
 ## 1. Vision Dataset (`data/ambulance_images/`)

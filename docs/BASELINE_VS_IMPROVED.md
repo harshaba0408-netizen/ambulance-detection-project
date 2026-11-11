@@ -1,12 +1,12 @@
 # Baseline vs Current Measurements
 
-**Scope:** Stage 10 benchmark harness for the AI Ambulance Detection & Adaptive
-Traffic Signal Priority prototype.
+**Scope:** Stage 10 benchmark harness plus the Stage 11–13 addenda for the AI
+Ambulance Detection & Adaptive Traffic Signal Priority prototype.
 
 This document compares the **published baseline commit** with the **current
-uncommitted working tree**. It reports only values that have a stored JSON result
-and a command that produced it. Where the baseline never measured something, the
-comparison says so instead of inventing a number.
+release `0.3.0` working tree**. It reports only values that have a stored JSON
+result and a command that produced it. Where the baseline never measured
+something, the comparison says so instead of inventing a number.
 
 > This is a software prototype and simulation. Nothing here is a claim about
 > real traffic control, emergency-response times, or deployment readiness.
@@ -16,7 +16,7 @@ comparison says so instead of inventing a number.
 ## 1. Ground rules
 
 * The model checkpoints were **not** retrained, fine-tuned or replaced in
-  Stages 2–10. Vision weights remain `yolov8l_ambulance.pt` (SHA-256
+  Stages 2–15. Vision weights remain `yolov8l_ambulance.pt` (SHA-256
   `6784b16f90013517a55aec759710d7de1f87a468a8e0be9b9c3833588700229d`).
   The siren classifier remains `siren_classifier.pkl` (SHA-256
   `2aa5a0dfd561dc0ba9d5a80873b65b39f979675079286c698a85c5e41f3a8e5c`).
@@ -270,15 +270,16 @@ harness.
 | Audio latency | not measured | 173.21 ms median end-to-end | New measured harness |
 | System decision path | not measured | 0.0972 ms median tick | New measured harness |
 | System activation | not measured | 2.0 simulated seconds | Deterministic scenario result |
-| Tests | 16 passed | 416 passed | 351 Stage 9 + 16 Stage 10 + 31 Stage 11–12 + 18 Stage 14 |
-| Coverage | unmeasured | 92% statements in `src/ambulance_system` | Stage 9; statement coverage only |
+| Tests | 16 passed | 443 passed | 351 Stage 9 + 16 Stage 10 + 31 Stage 11–12 + 18 Stage 14 + 27 Stage 13 |
+| Coverage | unmeasured | 92% statements in `src/ambulance_system` | Statement coverage only |
 | Audio duplicates | 4 pairs | 4 pairs excluded from the split | Detection + exclusion; quarantine not executed |
 | Hardware boundary | modeled in code | simulation + mock controllers, 18 tests | No physical hardware opened or tested |
+| GCC-PHAT (synthetic) | not measured | 1.16 µs delay MAE, 0.498° bearing MAE, 280 trials | Experimental free-field method check; no array |
 
 **Test-count provenance:** measured by `.\venv\Scripts\python.exe -m pytest -q`
-on 2026-11-12: `416 passed, 1 warning in 46.05s`. The last coverage rerun with
-`--cov=src/ambulance_system` passed 388 tests and reported 92% (221 missed of
-2778 statements). No test was removed, skipped or weakened.
+on 2026-11-12: `443 passed, 1 warning in 40.20s`. The same run with
+`--cov=src/ambulance_system` passed 443 tests, took 66.40 s and reported 92%
+(255 missed of 3259 statements). No test was removed, skipped or weakened.
 
 ---
 
@@ -301,6 +302,9 @@ on 2026-11-12: `416 passed, 1 warning in 46.05s`. The last coverage rerun with
 # Stage 12: content-group split and experiment-only retrain
 .\venv\Scripts\python.exe scripts\make_audio_split.py --manifest data\audio\content_groups.csv --seed stage12-20261111
 .\venv\Scripts\python.exe scripts\train_audio.py --split data\audio\splits\audio_split.json
+
+# Stage 13: synthetic GCC-PHAT method check (no array, no field data)
+.\venv\Scripts\python.exe scripts\benchmark_localisation.py
 
 # Full test suite
 .\venv\Scripts\python.exe -m pytest -q
@@ -327,6 +331,8 @@ model hash (where applicable), configuration and timestamp inside the result.
   simulation with synthetic evidence.
 * It does not establish statistical significance. The test split has 5 images
   and each latency table is one run on one machine.
+* It does not show field localisation. The Stage 13 GCC-PHAT row is a synthetic
+  free-field method check with no microphone array or geographic position.
 
 Real improvement claims require the held-out, source-independent audio split and
 the licensed vision dataset expansion described in Stages 11 and 12.

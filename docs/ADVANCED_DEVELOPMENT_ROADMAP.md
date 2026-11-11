@@ -1,11 +1,11 @@
 # Advanced Development Roadmap
 ## AI Ambulance Detection & Adaptive Traffic Signal Priority System
 
-**Document status:** living implementation roadmap - Stage 11 implemented 2026-11-11 (content-group split); Stage 14 implemented 2026-11-12 (simulation/mock hardware boundary)
+**Document status:** living implementation roadmap - Stage 11 implemented 2026-11-11 (content-group split); Stage 14 implemented 2026-11-12 (simulation/mock hardware boundary); Stage 13 experimental and Stage 15 documentation/release completed 2026-11-12
 **Date:** 2026-11-09 (last updated 2026-11-12)
-**Baseline commit:** `8b10f1bd79c5783a84aac8e313ba06a898cfa3d6` (`main` = `origin/main` at the start of Stage 14)
+**Baseline commit:** `d4c3a7dc3028b38dd10e1db52cd985a26a72be4b` (`main` = `origin/main` at the start of Stage 13/15)
 **Companion document:** [`BASELINE_AUDIT.md`](BASELINE_AUDIT.md) — all measured facts referenced here come from that audit.
-**Source code changed so far:** Stages 2–14 are implemented. See each stage section for delivered files.
+**Source code changed so far:** Stages 2–11, the audio Stage 12 follow-up, Stage 13 (experimental), Stage 14 and Stage 15. The vision Stage 12 retraining remains blocked. See each stage section for delivered files.
 
 > This is a **software prototype and simulation**. Nothing in this roadmap authorises connection to public traffic infrastructure, physical relays or real signal controllers. Every stage keeps the system in simulation or, at most, an isolated low-voltage lab mock.
 
@@ -140,7 +140,7 @@ Rules the design must enforce:
 
 ## 4. Test status and quality gap
 
-**Baseline at Stage 1:** 16 collected, 16 passed, 0 failed, 0 skipped, 1 Librosa deprecation warning, 40.53 s. **Current (2026-11-12):** 416 passed, 1 warning, 46.05 s plain run; 92% statement coverage (221 missed of 2778) measured with the 388-test suite.
+**Baseline at Stage 1:** 16 collected, 16 passed, 0 failed, 0 skipped, 1 Librosa deprecation warning, 40.53 s. **Current (2026-11-12):** 443 passed, 1 warning, 40.20 s plain run; 92% statement coverage (255 missed of 3259) measured with the same 443-test suite. Release `0.3.0`.
 
 | Area | Existing tests | Real coverage of production code | Gap |
 |---|---:|---|---|
@@ -327,7 +327,7 @@ Delivered: `src/ambulance_system/fusion/{engine,rules}.py`, `tests/test_fusion.p
 ---
 
 ### Stage 8 — Dashboard upgrade and thread safety
-**Status:** implemented 2026-11-10 - 29 new tests, 273 total at that stage (388 now). **Complexity: L (5-8 days).**
+**Status:** implemented 2026-11-10 - 29 new tests, 273 total at that stage (443 now). **Complexity: L (5-8 days).**
 
 Objective: keep the existing Tkinter UI but make it a thin, non-blocking renderer.
 
@@ -371,7 +371,7 @@ Delivered: installed `pytest-cov==7.1.0` / `coverage==7.17.2` with approval; add
 ---
 
 ### Stage 10 — Benchmark harness and baseline comparison
-**Status:** implemented 2026-11-10 - 16 new tests, 367 total at that stage (388 now). **Complexity: M (2-4 days).**
+**Status:** implemented 2026-11-10 - 16 new tests, 367 total at that stage (443 now). **Complexity: M (2-4 days).**
 
 Create:
 
@@ -426,18 +426,24 @@ Plan:
 ---
 
 ### Stage 13 — Optional GCC-PHAT direction research
-**Status:** optional and independent. **Complexity: L (5–8 days). Risk: research.**
+**Status: experimental, implemented 2026-11-12. Complexity: L (5–8 days). Risk: research.**
 
-Create only if multi-channel audio or a mic array becomes available:
+Delivered as a self-contained offline experiment:
 
 ```
 src/ambulance_system/localisation/gcc_phat.py
 src/ambulance_system/localisation/doa.py
+src/ambulance_system/localisation/simulation.py
+src/ambulance_system/localisation/__init__.py
+scripts/benchmark_localisation.py
 tests/test_gcc_phat.py
 docs/localisation.md
+benchmarks/results/localisation_synthetic_20261111T191746Z.json
 ```
 
-Deliverable is a self-contained offline experiment: mathematical derivation, synthetic two-source simulation, unit tests with known delays, and an explicit limitation section. It must not be wired into the priority decision and must never claim geographic localisation from single-microphone classification.
+The mathematical derivation, synthetic two-source simulation, 27 known-delay unit tests and limitations are in [`localisation.md`](localisation.md). The synthetic benchmark reported 1.16 µs delay MAE and 0.498° bearing MAE over 280 free-field trials; no microphone array was available.
+
+The package is **not** wired into the priority decision. A source-scan test enforces that it imports no fusion, signal, dashboard or device module. It estimates a far-field bearing from two or more synchronised channels; it never claims geographic localisation from the single-microphone siren classifier.
 
 ---
 
@@ -453,11 +459,19 @@ No GPIO, relay, serial or network device is opened by default. The abstraction i
 ---
 
 ### Stage 15 — Documentation, README, release
-**Status:** final. **Complexity: M (2–4 days).**
+**Status: implemented 2026-11-12. Complexity: M (2–4 days).**
 
-Update `README.md`, `docs/architecture.md`, `docs/testing_report.md`, `docs/dataset_report.md`; add `docs/limitations.md` and the final research report. Label explicitly: **Implemented**, **Tested**, **Experimental**, **Planned**. Generate CV bullets only from completed, verified work.
+Delivered:
 
-Git: work on `feature/advanced-prototype` (or similar), meaningful commits, no force push, no secrets, models via LFS only after checking quota, and **ask before every commit and push**.
+* [`limitations.md`](limitations.md) — status labels, full limitation register and non-claims.
+* [`research_report.md`](research_report.md) — final report with verified results, reproducibility, CV-ready bullets and explicit caveats.
+* [`release_notes.md`](release_notes.md) — release `0.3.0` contents, verification and checklist.
+* Updates to `README.md`, [`architecture.md`](architecture.md), [`testing_report.md`](testing_report.md), [`dataset_report.md`](dataset_report.md), [`BASELINE_VS_IMPROVED.md`](BASELINE_VS_IMPROVED.md) and this roadmap.
+* Package version bumped to `0.3.0`.
+
+Every claim is labelled **Implemented**, **Tested**, **Experimental**, **Planned** or **Blocked**. The final suite is 443 passed with 1 warning; coverage is 92% of 3259 statements. CV bullets are generated only from verified work and are published with their caveats.
+
+Git: no force push, no secrets, models via LFS. Commit and push require explicit approval for the specific work.
 
 ---
 
@@ -500,7 +514,7 @@ There is a duplicate local checkpoint `Yovov8l_Amubalce_trained.pt` (87.6 MB, di
 | Authorised RTSP test stream | Verified live streaming (Stage 5) | — | **Required** |
 | Optional 2-mic array | GCC-PHAT research (Stage 13) | Hardware purchase | **Required** |
 
-Stage 10 is complete. Stage 11 tooling and the Stage 12 audio follow-up are implemented; source provenance remains unverified. Stage 14 (hardware simulation/mock boundary) is implemented. Stage 15 docs/release and the optional Stage 13 research remain; the vision Stage 12 retraining remains resource-blocked. `pytest-cov` is installed and no longer a blocker.
+Stage 10 is complete. Stage 11 tooling, the audio Stage 12 follow-up, Stage 13 (experimental) and Stage 14 (simulation/mock boundary) are implemented; source provenance remains unverified. Stage 15 documentation/release is complete. The vision Stage 12 retraining remains resource-blocked. `pytest-cov` is installed and no longer a blocker.
 
 ---
 
@@ -512,18 +526,18 @@ Stage 10 is complete. Stage 11 tooling and the Stage 12 audio follow-up are impl
 | 2 — YOLOv8 improvement | Stage 12 (blocked) + Stage 4 (code/eval) |
 | 3 — Continuous audio | Stage 6 (+ Stage 11 for data) |
 | 4 — Live video | Stage 5 |
-| 5 — Siren localisation | Stage 13 (optional) |
+| 5 — Siren localisation | Stage 13 (experimental; no array) |
 | 6 — Adaptive signal engine | Stage 3 |
 | 7 — Multimodal fusion | Stage 7 |
 | 8 — Dashboard | Stage 8 |
 | 9 — Testing / QA | Stage 9 |
 | 10 — Benchmarking | Stage 10 |
 | 11 — Architecture | Stages 2–8 |
-| 12 — Hardware-in-the-loop prep | Stage 14 |
+| 12 — Hardware-in-the-loop prep | Stage 14 (software boundary only) |
 | 13 — Config / reproducibility | Stage 2, 11, 12 |
-| 14 — Final documentation | Stage 15 |
+| 14 — Final documentation | Stage 15 (complete) |
 | 15 — Git / release | Stage 15 (all stages: branch + review) |
-| 16 — Research / CV report | Stage 15 |
+| 16 — Research / CV report | Stage 15 (complete) |
 
 ---
 
@@ -562,9 +576,9 @@ Stage 9  coverage + expanded tests              ← complete
 Stage 10 benchmarks + comparison report          ← complete
 Stage 11 audio data remediation                 ← implemented (content-group split; provenance unverified)
 Stage 12 vision retraining                      ← blocked: disk / GPU / licensed data
-Stage 13 GCC-PHAT (optional)
+Stage 13 GCC-PHAT (optional)                    ← experimental (synthetic only; no array)
 Stage 14 hardware abstraction (simulation only)  ← complete
-Stage 15 docs, release, research report
+Stage 15 docs, release, research report         ← complete (0.3.0)
 ```
 
-**Current status: Stage 11 implemented (388 passing; file-level audio split and experiment metrics stored).** Source-independent audio metrics still require a provenance manifest. The next executable work is Stage 14 (simulation-only hardware abstraction) and Stage 15 documentation; Stage 12 is blocked by disk/GPU/licensed data, and Stage 13 needs optional microphone hardware. Release actions (commit/push) still require explicit approval.
+**Current status: Stage 13 experimental and Stage 15 complete (443 passing; 92% statement coverage; release 0.3.0).** Source-independent audio metrics still require a provenance manifest. Vision Stage 12 remains blocked by disk/GPU/licensed data. Real microphone-array localisation and physical hardware remain planned. Release actions (commit/push) require explicit approval.

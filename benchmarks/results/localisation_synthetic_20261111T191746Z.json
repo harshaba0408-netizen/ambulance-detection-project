@@ -1,0 +1,250 @@
+{
+  "benchmark": "localisation",
+  "kind": "synthetic_gcc_phat_method_check",
+  "generated_at": "2026-11-11T19:17:25.093237+00:00",
+  "command": [
+    "scripts\\benchmark_localisation.py"
+  ],
+  "environment": {
+    "python": "3.12.5",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 142 Stepping 12, GenuineIntel",
+    "cpu_count": 4,
+    "ram_total_gb": 7.86,
+    "ram_available_gb": 1.06,
+    "torch": "2.10.0+cpu",
+    "cuda_available": false,
+    "ultralytics": "8.4.22"
+  },
+  "microphone_array_used": false,
+  "real_audio_used": false,
+  "priority_decision_connected": false,
+  "method": {
+    "estimator": "GCC-PHAT",
+    "doa_model": "far-field plane wave, 1-D pair bearing",
+    "signal_model": "white source, independent Gaussian sensor noise",
+    "fractional_delay": "FFT phase shift (circular within the window)",
+    "speed_of_sound_m_s": 343.0
+  },
+  "configuration": {
+    "sample_rate": 16000,
+    "duration_s": 0.25,
+    "spacing_m": 0.12,
+    "interpolation": 16,
+    "trials": 10,
+    "two_source_trials": 5,
+    "seed": 20261112,
+    "bearings_deg": [
+      -75.0,
+      -50.0,
+      -25.0,
+      0.0,
+      25.0,
+      50.0,
+      75.0
+    ],
+    "noise_levels": [
+      0.0,
+      0.01,
+      0.05,
+      0.1
+    ],
+    "two_source_bearings_deg": [
+      [
+        -40.0,
+        35.0
+      ],
+      [
+        -60.0,
+        20.0
+      ],
+      [
+        45.0,
+        -50.0
+      ]
+    ]
+  },
+  "synthetic_bounds": {
+    "max_unambiguous_delay_s": 0.000349854,
+    "max_unambiguous_delay_samples": 5.597668,
+    "one_sample_s": 6.25e-05
+  },
+  "caveats": [
+    "Synthetic free-field signals only; no microphone array or real recording was used.",
+    "No reverberation, walls, sensor directivity, gain mismatch or clock drift is modelled.",
+    "The bearing is a far-field angle from broadside for a linear pair, not a geographic position.",
+    "The experiment is not connected to fusion, signal priority or the dashboard.",
+    "These numbers must not be quoted as field localisation accuracy."
+  ],
+  "results": {
+    "single_source": {
+      "bearings_deg": [
+        -75.0,
+        -50.0,
+        -25.0,
+        0.0,
+        25.0,
+        50.0,
+        75.0
+      ],
+      "noise_levels": [
+        0.0,
+        0.01,
+        0.05,
+        0.1
+      ],
+      "trials_per_condition": 10,
+      "by_noise_std": [
+        {
+          "noise_std": 0.0,
+          "trials": 70,
+          "delay_error_us": {
+            "count": 70,
+            "mean": 1.152393,
+            "p95": 1.910516,
+            "max": 1.995734
+          },
+          "bearing_error_deg": {
+            "count": 70,
+            "mean": 0.499987,
+            "p95": 1.260767,
+            "max": 1.260767
+          },
+          "within_2deg_rate": 1.0,
+          "clipped": 0
+        },
+        {
+          "noise_std": 0.01,
+          "trials": 70,
+          "delay_error_us": {
+            "count": 70,
+            "mean": 1.153611,
+            "p95": 1.995734,
+            "max": 1.995734
+          },
+          "bearing_error_deg": {
+            "count": 70,
+            "mean": 0.499331,
+            "p95": 1.260767,
+            "max": 1.260767
+          },
+          "within_2deg_rate": 1.0,
+          "clipped": 0
+        },
+        {
+          "noise_std": 0.05,
+          "trials": 70,
+          "delay_error_us": {
+            "count": 70,
+            "mean": 1.156046,
+            "p95": 1.995734,
+            "max": 1.995734
+          },
+          "bearing_error_deg": {
+            "count": 70,
+            "mean": 0.49802,
+            "p95": 1.260767,
+            "max": 1.260767
+          },
+          "within_2deg_rate": 1.0,
+          "clipped": 0
+        },
+        {
+          "noise_std": 0.1,
+          "trials": 70,
+          "delay_error_us": {
+            "count": 70,
+            "mean": 1.160915,
+            "p95": 1.995734,
+            "max": 1.995734
+          },
+          "bearing_error_deg": {
+            "count": 70,
+            "mean": 0.495396,
+            "p95": 1.260767,
+            "max": 1.260767
+          },
+          "within_2deg_rate": 1.0,
+          "clipped": 0
+        }
+      ],
+      "overall": {
+        "trials": 280,
+        "delay_error_us": {
+          "count": 280,
+          "mean": 1.155741,
+          "p95": 1.995734,
+          "max": 1.995734
+        },
+        "bearing_error_deg": {
+          "count": 280,
+          "mean": 0.498184,
+          "p95": 1.260767,
+          "max": 1.260767
+        },
+        "within_2deg_rate": 1.0
+      }
+    },
+    "two_source": {
+      "conditions": [
+        {
+          "bearings_deg": [
+            -40.0,
+            35.0
+          ],
+          "trials": 5,
+          "both_sources_detected": 5,
+          "detection_rate": 1.0,
+          "matched_delay_error_us": {
+            "count": 10,
+            "mean": 1.837552,
+            "p95": 2.225713,
+            "max": 2.225713
+          }
+        },
+        {
+          "bearings_deg": [
+            -60.0,
+            20.0
+          ],
+          "trials": 5,
+          "both_sources_detected": 5,
+          "detection_rate": 1.0,
+          "matched_delay_error_us": {
+            "count": 10,
+            "mean": 2.232232,
+            "p95": 2.469693,
+            "max": 2.469693
+          }
+        },
+        {
+          "bearings_deg": [
+            45.0,
+            -50.0
+          ],
+          "trials": 5,
+          "both_sources_detected": 5,
+          "detection_rate": 1.0,
+          "matched_delay_error_us": {
+            "count": 10,
+            "mean": 1.939018,
+            "p95": 2.615703,
+            "max": 2.615703
+          }
+        }
+      ],
+      "trials": 15,
+      "both_sources_detected": 15,
+      "detection_rate": 1.0,
+      "tolerance_samples": 0.5,
+      "noise_std": 0.01,
+      "matched_delay_error_us": {
+        "count": 30,
+        "mean": 2.002934,
+        "p95": 2.615703,
+        "max": 2.615703
+      }
+    }
+  },
+  "output": "C:\\Users\\N E\\OneDrive\\Desktop\\Ambulance Project\\ambulance_detection_project\\ambulance_detection_project\\benchmarks\\results\\localisation_synthetic_20261111T191746Z.json"
+}
