@@ -24,6 +24,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import math
 import sys
 import time
 from pathlib import Path
@@ -98,6 +99,13 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="capture channels before mono downmix (default: audio.channels)",
     )
+    parser.add_argument(
+        "--min-rms",
+        type=float,
+        default=1e-3,
+        help="live silence gate: windows below this RMS are reported without "
+        "classification (default: 0.001; use 0 to disable)",
+    )
     return parser
 
 
@@ -133,6 +141,9 @@ def main(argv: Optional[list[str]] = None) -> int:
     if args.threshold is not None and not 0.0 <= args.threshold <= 1.0:
         print("error: --threshold must be within [0, 1]", file=sys.stderr)
         return 2
+    if not math.isfinite(args.min_rms) or args.min_rms < 0.0:
+        print("error: --min-rms must be a finite number >= 0", file=sys.stderr)
+        return 2
 
     config = _load(args)
     audio = config.audio
@@ -167,11 +178,17 @@ def main(argv: Optional[list[str]] = None) -> int:
     started = time.monotonic()
     windows = 0
     sirens = 0
+    silent = 0
     predictions = None
+    gate = (
+        f"silence gate RMS < {args.min_rms:g}"
+        if args.min_rms > 0.0
+        else "silence gate off"
+    )
     print(
         f"capturing from {source.name} at {source.sample_rate} Hz "
         f"(window {audio.window_s:.1f}s, overlap {audio.overlap_s:.1f}s, "
-        f"threshold {threshold:.2f}); Ctrl+C to stop",
+        f"threshold {threshold:.2f}, {gate}); Ctrl+C to stop",
         flush=True,
     )
     try:
@@ -180,17 +197,22 @@ def main(argv: Optional[list[str]] = None) -> int:
             classifier,
             window_s=audio.window_s,
             overlap_s=audio.overlap_s,
+            min_rms=args.min_rms,
         )
         for prediction in predictions:
             windows += 1
             if prediction.is_siren:
                 sirens += 1
-            label = "SIREN" if prediction.is_siren else "quiet"
+            if prediction.confidence is None and not prediction.is_siren:
+                silent += 1
+                label = "silent"
+            else:
+                label = "SIREN" if prediction.is_siren else "quiet"
             confidence = (
                 "n/a" if prediction.confidence is None else f"{prediction.confidence:.3f}"
             )
             print(
-                f"{prediction.window.start_s:8.2f}s  {label:5s}  conf={confidence}",
+                f"{prediction.window.start_s:8.2f}s  {label:6s}  conf={confidence}",
                 flush=True,
             )
             if args.seconds is not None and time.monotonic() - started >= args.seconds:
@@ -221,7 +243,10 @@ def main(argv: Optional[list[str]] = None) -> int:
             "microphone privacy setting and device driver",
             file=sys.stderr,
         )
-    print(f"summary: {windows} windows, {sirens} siren window(s)")
+    summary = f"summary: {windows} windows, {sirens} siren window(s)"
+    if silent:
+        summary += f", {silent} below the silence gate"
+    print(summary)
     if windows == 0:
         print("error: no complete window was captured", file=sys.stderr)
         return 2

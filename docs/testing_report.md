@@ -3,10 +3,11 @@
 
 > **Baseline document (Stage 1).** The tables below describe the original
 > 16-test suite and remain as the frozen starting point. The current suite has
-> **474 tests** (474 passed, 1 warning on 2026-11-12). The **92% statement
+> **482 tests** (482 passed, 1 warning on 2026-11-12). The **92% statement
 > coverage** (255 missed of 3259 statements) was measured on the earlier
 > 443-test suite and was not re-measured after the Stage 6 live-source
-> follow-up. See
+> follow-up.
+> See
 > section 6 for the Stage 9 coverage report, section 7 for the Stage 10
 > benchmark-harness tests, section 8 for the Stage 11–12 provenance tests,
 > section 9 for the Stage 14 hardware-abstraction tests, section 10 for the
@@ -349,23 +350,35 @@ Covered behaviour:
 * `list_input_devices()` filtering output endpoints and wrapping backend errors;
 * integration with the shared `stream_predictions` sliding-window pipeline.
 
+A follow-up added **8 silence-gate tests** to `tests/test_audio_streaming.py`
+(39 live-related tests in total). They assert that:
+
+* a window below `min_rms` is **not** passed to the classifier (the fake model's
+  `predict` is never called) and is reported `is_siren=False,
+  confidence=None`;
+* an audible window above the gate is classified normally;
+* the gate is off by default, so file behaviour is unchanged;
+* negative, non-finite, boolean and non-numeric `min_rms` values are rejected.
+
 ```powershell
-.\venv\Scripts\python.exe -m pytest tests/test_audio_microphone.py -q
+.\venv\Scripts\python.exe -m pytest tests/test_audio_microphone.py tests/test_audio_streaming.py -q
 ```
 
 ```text
-31 passed
+55 passed
 ```
 
 The full suite after this change:
 
 ```text
-474 passed, 1 warning
+482 passed, 1 warning
 ```
 
 The real device loop was exercised manually through
 `scripts/stream_microphone.py` (device listing, 22050 Hz capture, warm-up) and is
 **not** part of the suite. It exposed a blocked/faulty microphone and a
 near-silence false positive; see [`audio_pipeline.md`](audio_pipeline.md) section
-7 and [`limitations.md`](limitations.md). No live accuracy claim is made.
+7 and [`limitations.md`](limitations.md). The silence gate removes that specific
+false positive on the measured muted input (5 siren windows → 0, 5 `silent`), but
+no live accuracy claim is made.
 

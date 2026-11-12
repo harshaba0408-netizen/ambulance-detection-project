@@ -10,6 +10,11 @@ Windows are emitted at `hop = window_s - overlap_s`. The final window may be
 shorter than `window_s`; it is marked `partial=True` and is classified using the
 samples that actually exist (no zero-padding, which would change the features
 relative to the legacy one-shot path).
+
+`stream_predictions` accepts an optional `min_rms` silence gate. It is disabled
+by default, so file analysis is unchanged; the live capture CLI enables it so a
+muted or noise-floor microphone is reported as "no signal" instead of being
+classified as a siren.
 """
 
 from __future__ import annotations
@@ -197,13 +202,26 @@ def stream_predictions(
     window_s: float,
     overlap_s: float,
     include_partial: bool = True,
+    min_rms: float = 0.0,
 ) -> Iterator[WindowPrediction]:
     """Read blocks from `source`, classifying each sliding window.
 
     The source is opened if necessary and always closed by this generator.
+
+    `min_rms` is an optional silence gate: windows whose RMS is below it are not
+    sent to the classifier and are reported as `is_siren=False` with
+    `confidence=None` ("no signal"). The default 0.0 disables the gate, so
+    offline file behaviour is unchanged.
     """
     if not isinstance(classifier, SirenClassifier):
         raise TypeError("classifier must be a SirenClassifier")
+    if (
+        isinstance(min_rms, bool)
+        or not isinstance(min_rms, (int, float))
+        or not np.isfinite(float(min_rms))
+        or float(min_rms) < 0.0
+    ):
+        raise ValueError("min_rms must be a finite number >= 0")
     window_samples, hop_samples = _window_geometry(
         source.sample_rate, window_s, overlap_s
     )
@@ -237,7 +255,7 @@ def stream_predictions(
                     samples=buffer[:window_samples].copy(),
                     sample_rate=source.sample_rate,
                 )
-                yield _classify(window, classifier)
+                yield _classify(window, classifier, min_rms)
                 index += 1
                 buffer = buffer[hop_samples:]
 
@@ -252,13 +270,21 @@ def stream_predictions(
                 sample_rate=source.sample_rate,
                 partial=True,
             )
-            yield _classify(window, classifier)
+            yield _classify(window, classifier, min_rms)
     finally:
         if opened_here:
             source.close()
 
 
-def _classify(window: AudioWindow, classifier: SirenClassifier) -> WindowPrediction:
+def _classify(
+    window: AudioWindow,
+    classifier: SirenClassifier,
+    min_rms: float = 0.0,
+) -> WindowPrediction:
+    if min_rms > 0.0:
+        rms = float(np.sqrt(np.mean(np.square(window.samples, dtype=np.float64))))
+        if rms < min_rms:
+            return WindowPrediction(window=window, is_siren=False, confidence=None)
     prediction = classifier.predict_samples(window.samples)
     return WindowPrediction(
         window=window,

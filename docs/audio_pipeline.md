@@ -176,13 +176,14 @@ hundred milliseconds. The dashboard does not yet warm up the pipeline at start.
 ## 6. Tests
 
 Stage 6 added 31 tests in the original offline pass; the live-source follow-up
-adds 31 more (62 for the audio stage):
+adds 31 more, plus 8 silence-gate tests in `tests/test_audio_streaming.py`
+(70 audio-stage tests, 482 in the full suite):
 
 | File | Coverage |
 |---|---|
 | `tests/test_audio_features.py` | legacy MFCC parity, resampling/downmixing, determinism, input validation |
 | `tests/test_audio_classifier.py` | real checkpoint, threshold policy, probability fallback, validation |
-| `tests/test_audio_streaming.py` | window geometry, overlap, partial tails, block source, event conversion, real siren/non-siren files |
+| `tests/test_audio_streaming.py` | window geometry, overlap, partial tails, block source, event conversion, real siren/non-siren files, silence-gate skip/allow/validation |
 | `tests/test_audio_microphone.py` | fake `sounddevice` backend: lifecycle, mono downmix, timeout, close/unblock, buffer overflow, invalid blocks, device listing, shared-pipeline integration |
 
 The 16 legacy audio/vision tests remain unchanged and passing.
@@ -195,6 +196,10 @@ The 16 legacy audio/vision tests remain unchanged and passing.
 
 # capture until Ctrl+C, or for a bounded run
 .\venv\Scripts\python.exe scripts\stream_microphone.py --device 1 --seconds 20
+
+# adjust or disable the silence gate
+.\venv\Scripts\python.exe scripts\stream_microphone.py --min-rms 0.01
+.\venv\Scripts\python.exe scripts\stream_microphone.py --min-rms 0
 ```
 
 The CLI loads the normal config and checkpoint, warms the first MFCC call
@@ -211,6 +216,8 @@ Measured on this machine (Windows, Realtek microphone, 22050 Hz, mono):
 | Device opened at 22050 Hz, 0.25 s blocks | works; 5512-sample callbacks |
 | `--seconds 1` (3 s window) | 1 window classified; 0 dropped blocks after warm-up |
 | Device health | intermittent uninitialised buffers (RMS ~1e24) and noise-floor captures (RMS ~1.5e-5) |
+| `--seconds 10`, gate off (before) | 5 windows, **5 siren**, confidence 0.87–0.89 on a muted input |
+| `--seconds 10`, default gate (after) | 5 windows, **0 siren**, 5 reported `silent` |
 
 **Important negative result:** the microphone on this machine was not delivering
 trustworthy audio. Some captures returned garbage buffers, others sat at the
@@ -228,6 +235,28 @@ out-of-distribution, near-silent input — not evidence of a siren. Therefore:
 The energy/calibration gap belongs to the classifier and data work
 (Stages 11–12), not to the capture layer. See
 [`limitations.md`](limitations.md).
+
+### Silence gate
+
+`stream_predictions` takes `min_rms` (default `0.0` = disabled). When set, a
+window whose RMS is below the floor is **not sent to the classifier** and is
+returned as `is_siren=False, confidence=None`; the CLI prints it as `silent` and
+counts it separately in the summary. The gate lives in the shared streaming
+function (not in the classifier) and is off by default, so offline file analysis
+and the dashboard are unchanged.
+
+```python
+for prediction in stream_predictions(source, classifier,
+                                     window_s=3.0, overlap_s=1.5,
+                                     min_rms=1e-3):
+    ...
+```
+
+The CLI default is `--min-rms 1e-3`, roughly two orders of magnitude above the
+measured noise floor (~1.5e-5) and well below normal speech/music energy. It is
+a **live-input guard, not a validity check**: it removes the muted-microphone
+false positive measured here, but it cannot make the classifier's accuracy on
+real siren audio known. `--min-rms 0` restores the previous behaviour.
 
 ## 8. Still blocked
 

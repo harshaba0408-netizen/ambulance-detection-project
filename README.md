@@ -4,7 +4,7 @@
 [![YOLOv8](https://img.shields.io/badge/YOLOv8-Ultralytics-orange.svg)](https://docs.ultralytics.com/)
 [![OpenCV](https://img.shields.io/badge/OpenCV-Computer%20Vision-green.svg)](https://opencv.org/)
 [![Librosa](https://img.shields.io/badge/Librosa-Audio%20Processing-yellow.svg)](https://librosa.org/)
-[![Tests](https://img.shields.io/badge/Tests-474%20Passed%20(100%25)-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-482%20Passed%20(100%25)-brightgreen.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-lightgrey.svg)](LICENSE)
 
 An end-to-end edge AI system that combines **deep learning computer vision (YOLOv8 Large)** and **acoustic machine learning (MFCC + Random Forest)** to dynamically prioritize traffic signals at urban intersections for approaching emergency ambulances.
@@ -18,13 +18,13 @@ All stages that can be completed on this machine are done. Three items remain pa
 | Stage | Scope | Status |
 |---|---|---|
 | 2–5, 7–10, 14 | Config/events/clock, signal state machine, detector + evaluation harness, video sources, fusion, dashboard, tests/coverage, benchmarks, hardware simulation/mock boundary | **Complete** |
-| 6 | Continuous audio streaming | **Complete** — file path plus live capture (`sounddevice` 0.5.6, `scripts/stream_microphone.py`); live **accuracy** is unvalidated (device fault and near-silence false positives on this machine) |
+| 6 | Continuous audio streaming | **Complete** — file path plus live capture (`sounddevice` 0.5.6, `scripts/stream_microphone.py` with an RMS silence gate); live **accuracy** is unvalidated (device fault on this machine; near-silent input is now reported as `silent`) |
 | 11 (+ Stage 12 audio follow-up) | Audio data remediation and provenance | **Implemented; provenance unverified** — 234 acoustic content groups are held inside single splits, but no source/session/licence manifest exists |
 | 12 (vision) | Dataset expansion + YOLO retraining | **Blocked** — disk, GPU and licensed diverse data unavailable; the shipped checkpoint was not retrained |
 | 13 | GCC-PHAT direction research | **Experimental** — synthetic two-channel signals only; no microphone array, not wired into fusion or priority |
 | 15 | Documentation, release `0.3.0`, research report | **Complete** |
 
-Verification: `python -m pytest -q` re-run on 2026-11-12 → `474 passed, 1 warning`. Timings and coverage are recorded in **Automated Testing** below. Full stage register: [`docs/ADVANCED_DEVELOPMENT_ROADMAP.md`](docs/ADVANCED_DEVELOPMENT_ROADMAP.md).
+Verification: `python -m pytest -q` re-run on 2026-11-12 → `482 passed, 1 warning`. Timings and coverage are recorded in **Automated Testing** below. Full stage register: [`docs/ADVANCED_DEVELOPMENT_ROADMAP.md`](docs/ADVANCED_DEVELOPMENT_ROADMAP.md).
 
 ---
 
@@ -43,7 +43,7 @@ This project implements a multimodal edge AI prototype that:
 
 - **YOLOv8 Large Deep Learning Model:** Fine-tuned for ambulance detection, early-stopped after 187 epochs (200 configured). The checkpoint's embedded best-epoch metadata reports **87.39% Precision** and **74.23% mAP@50**; see the independent 5-image test-split result below and the caveats in [`docs/model_evaluation.md`](docs/model_evaluation.md).
 - **Acoustic Siren Classifier:** Extracts 40-dimensional Mel-Frequency Cepstral Coefficients (MFCC) processed through an optimized Random Forest classifier to distinguish sirens from ambient city and engine noises.
-- **Live Microphone Source:** `MicrophoneAudioSource` captures 0.25 s mono blocks through the optional `sounddevice` backend and feeds the same windowing/classifier path as files, with bounded buffering plus dropped/invalid-block counters. Live accuracy is **not validated**; see [`docs/audio_pipeline.md`](docs/audio_pipeline.md).
+- **Live Microphone Source:** `MicrophoneAudioSource` captures 0.25 s mono blocks through the optional `sounddevice` backend and feeds the same windowing/classifier path as files, with bounded buffering plus dropped/invalid-block counters. The live CLI applies an RMS silence gate (disabled by default in the shared streaming API) so a muted microphone is reported as no signal. Live accuracy is **not validated**; see [`docs/audio_pipeline.md`](docs/audio_pipeline.md).
 - **Multimodal Decision Policies:** Configurable per approach:
   - `AUDIO`: Triggers priority green signal upon acoustic siren confirmation.
   - `VIDEO`: Triggers priority green signal upon visual bounding box detection above threshold ($\ge 0.65$).
@@ -51,7 +51,7 @@ This project implements a multimodal edge AI prototype that:
   - `ADAPTIVE`: `BOTH` plus a tighter time window; never looser than `BOTH`.
 - **Interactive 4-Approach Dashboard:** Full-featured desktop GUI (Tkinter + OpenCV) visualizing 4 simultaneous road feeds, live preview with bounding boxes, audio/video confidence, fused state, signal phase, FPS/latency, system health, timestamped event history, and manual start/stop/fault controls.
 - **Evidence Capture (single-stream pipeline):** `ambulance_and_siren_integration.py` writes timestamped snapshots to `evidence/` when visual and audio detections are both confirmed. In the 4-road dashboard, priority is released by fusion staleness and signal hysteresis; **Clear All** remains a manual full reset.
-- **Fully Automated Pytest Suite:** 474 unit and integration tests covering vision, audio (file and live microphone), video pipeline, fusion, signal state machine, configuration, logging, metrics, benchmark helpers, audio provenance tooling, the hardware simulation/mock boundary, the experimental GCC-PHAT module, and the dashboard view-model, widgets and application shell.
+- **Fully Automated Pytest Suite:** 482 unit and integration tests covering vision, audio (file and live microphone), video pipeline, fusion, signal state machine, configuration, logging, metrics, benchmark helpers, audio provenance tooling, the hardware simulation/mock boundary, the experimental GCC-PHAT module, and the dashboard view-model, widgets and application shell.
 - **Traceable Benchmark Harness:** Three runtime CLI scripts plus an experimental localisation script store timestamped JSON results with environment, model hashes, commands and configuration. They report measured vision, audio, software decision-path and synthetic direction numbers without claiming retraining, field localisation or real-world traffic benefit; see [`docs/BASELINE_VS_IMPROVED.md`](docs/BASELINE_VS_IMPROVED.md).
 
 ---
@@ -179,7 +179,7 @@ ambulance-detection-project/
 ├── benchmarks/                        # Stored measurement results
 │   └── results/                       # Timestamped JSON, traceable to a command
 │
-├── tests/                             # Automated test suite (474 tests)
+├── tests/                             # Automated test suite (482 tests)
 │   ├── test_yolo_detection.py         # Legacy vision tests
 │   ├── test_audio_classification.py   # Legacy audio tests
 │   ├── test_traffic_signal_logic.py   # Legacy coordinator tests
@@ -280,8 +280,11 @@ python scripts/stream_microphone.py --list-devices
 
 # capture and classify windows until Ctrl+C, or for N seconds
 python scripts/stream_microphone.py --device 1 --seconds 20
+
+# disable the silence gate (not recommended on a noisy or muted input)
+python scripts/stream_microphone.py --min-rms 0
 ```
-This requires `sounddevice` (installed from `requirements.txt`). It opens the device at the configured 22050 Hz with no resampling, downmixes stereo to mono, and warms the first MFCC call before capture. Live siren accuracy is not validated; review the measured caveats in [`docs/audio_pipeline.md`](docs/audio_pipeline.md).
+This requires `sounddevice` (installed from `requirements.txt`). It opens the device at the configured 22050 Hz with no resampling, downmixes stereo to mono, and warms the first MFCC call before capture. A live-only silence gate (RMS < `0.001` by default) reports near-silent windows as `silent` instead of classifying them, which stops the false sirens observed on a muted microphone; `--min-rms 0` disables it. Live siren accuracy is still not validated; review the measured caveats in [`docs/audio_pipeline.md`](docs/audio_pipeline.md).
 
 ### 4. Run Standalone Tests
 ```bash
@@ -296,7 +299,7 @@ python test_siren.py
 
 ## 🧪 Automated Testing
 
-The project includes **474 automated unit and integration tests** covering configuration, events, clock, logging, YOLO detection, video sources and pipeline metrics, audio features/classifier/streaming, the live microphone source (fake backend, no hardware), multimodal fusion, the signal state machine and arbiter, benchmark helpers, audio provenance tooling, the hardware simulation/mock boundary, the experimental GCC-PHAT direction module, and the dashboard view-model, widgets and application shell.
+The project includes **482 automated unit and integration tests** covering configuration, events, clock, logging, YOLO detection, video sources and pipeline metrics, audio features/classifier/streaming, the live microphone source (fake backend, no hardware), multimodal fusion, the signal state machine and arbiter, benchmark helpers, audio provenance tooling, the hardware simulation/mock boundary, the experimental GCC-PHAT direction module, and the dashboard view-model, widgets and application shell.
 
 Run the suite with:
 ```powershell
@@ -305,7 +308,7 @@ Run the suite with:
 
 Full run on 2026-11-12 after the Stage 6 live-microphone follow-up (Python 3.12.5, CPU-only Windows):
 ```
-474 passed, 1 warning in 86.16s
+482 passed, 1 warning in 68.38s
 ```
 The coverage run below took 66.40 s on the earlier 443-test suite and was not repeated after the 31 live-microphone tests were added. An earlier re-run of that 443-test suite took 191.60 s under heavier machine load; runs on 2026-11-10 took 59.48–103.55 s for the then-current 367 tests. Times vary with machine load.
 

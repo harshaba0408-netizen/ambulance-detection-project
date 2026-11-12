@@ -36,7 +36,7 @@ camera or road-side deployment was available.
 | YOLOv8 ambulance detector | Implemented, Tested | Checkpoint metadata; 5-image test-split evaluation | Five test images; no retraining; CPU-only |
 | MFCC + Random Forest siren classifier | Implemented, Tested | 396-file content-group split; 1.0000 val/test | Not source-independent; single channel; no direction |
 | Video source abstraction (file/webcam/RTSP) | Implemented, Tested | Source and pipeline tests | No live RTSP or camera validation |
-| Audio streaming | Implemented, Tested | Streaming tests; latency benchmark; 31 backend-free live-source tests | Live accuracy unvalidated; no intersection deployment |
+| Audio streaming | Implemented, Tested | Streaming tests; latency benchmark; 31 backend-free live-source tests + 8 silence-gate tests | Live accuracy unvalidated; no intersection deployment |
 | Multimodal fusion policies | Implemented, Tested | Fusion and view-model tests | Rule-based thresholds, not learned or field-tuned |
 | Signal state machine and arbiter | Implemented, Tested | Headless state-machine and arbiter tests | Software simulation; no physical signal |
 | Dashboard | Implemented, Tested | Headless view-model and widget tests; manual launch | CPU-only; no long-run soak test |
@@ -132,8 +132,13 @@ camera or road-side deployment was available.
     (RMS ~1e24) and near-silent audio (RMS ~1.5e-5); one near-silent 3 s window
     was scored as SIREN with confidence 0.87–0.93. No recorded siren was played
     through the device, so the live path has no accuracy figure. Invalid blocks
-    are rejected by the capture layer, but the classifier's energy calibration
-    remains an open data/model issue.
+    are rejected by the capture layer, and the live CLI now applies an RMS
+    silence gate (`--min-rms`, default `1e-3`; the shared streaming default is
+    off) that reports near-silent windows as `silent` instead of classifying
+    them. Re-running the same muted input gave 0 siren windows instead of 5.
+    The gate is a guard against an unusable input signal; it does **not** make
+    live accuracy known, and the classifier's energy calibration remains an
+    open data/model issue.
 
 ---
 
@@ -228,8 +233,8 @@ camera or road-side deployment was available.
 
 ## 8. Testing and reproducibility limitations
 
-1. **Test count and coverage.** The full suite is **474 passed, 1 warning** on
-   2026-11-12 (Python 3.12.5, CPU-only Windows, 86.16 s). The **92% statement
+1. **Test count and coverage.** The full suite is **482 passed, 1 warning** on
+   2026-11-12 (Python 3.12.5, CPU-only Windows, 68.38 s). The **92% statement
    coverage** (255 missed of 3259 statements, 66.40 s) was measured on the
    earlier 443-test suite and was not re-measured after the 31 Stage 6
    live-microphone tests were added. Coverage measures executed statements,

@@ -286,6 +286,92 @@ def test_stream_predictions_closes_source_on_error():
     assert source.is_open is False
 
 
+class CountingModel(FakeModel):
+    def __init__(self, label: int = 1, positive_probability: float = 0.9):
+        super().__init__(label, positive_probability)
+        self.predict_calls = 0
+
+    def predict(self, X):
+        self.predict_calls += 1
+        return super().predict(X)
+
+
+def counting_classifier():
+    model = CountingModel()
+    return (
+        SirenClassifier(model, threshold=0.5, sample_rate=100, n_mfcc=40),
+        model,
+    )
+
+
+def test_silence_gate_skips_classification_of_zero_windows():
+    gated, model = counting_classifier()
+
+    predictions = list(
+        stream_predictions(
+            ListSource([np.zeros(200, dtype=np.float32)]),
+            gated,
+            window_s=1.0,
+            overlap_s=0.0,
+            min_rms=1e-3,
+        )
+    )
+
+    assert len(predictions) == 2
+    assert all(not item.is_siren for item in predictions)
+    assert all(item.confidence is None for item in predictions)
+    assert model.predict_calls == 0
+
+
+def test_silence_gate_still_classifies_audible_windows():
+    gated, model = counting_classifier()
+    samples = np.full(100, 0.5, dtype=np.float32)
+
+    predictions = list(
+        stream_predictions(
+            ListSource([samples]),
+            gated,
+            window_s=1.0,
+            overlap_s=0.0,
+            min_rms=1e-3,
+        )
+    )
+
+    assert predictions[0].is_siren
+    assert predictions[0].confidence == pytest.approx(0.9)
+    assert model.predict_calls == 1
+
+
+def test_silence_gate_is_disabled_by_default():
+    gated, model = counting_classifier()
+
+    predictions = list(
+        stream_predictions(
+            ListSource([np.zeros(100, dtype=np.float32)]),
+            gated,
+            window_s=1.0,
+            overlap_s=0.0,
+        )
+    )
+
+    assert predictions[0].is_siren
+    assert model.predict_calls == 1
+
+
+@pytest.mark.parametrize("value", [-0.1, float("nan"), float("inf"), True, "0.1"])
+def test_stream_predictions_rejects_invalid_silence_gate(value):
+    with pytest.raises(ValueError, match="min_rms"):
+        list(
+            stream_predictions(
+                ListSource([np.zeros(10)]),
+                classifier(),
+                window_s=1.0,
+                overlap_s=0.0,
+                min_rms=value,
+            )
+        )
+
+
 def test_summarize_counts_windows_and_confidence():
     window_a = AudioWindow(0, 0.0, 1.0, np.zeros(10), 100)
     window_b = AudioWindow(1, 0.5, 1.5, np.zeros(10), 100)
