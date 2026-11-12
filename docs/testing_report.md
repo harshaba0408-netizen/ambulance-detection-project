@@ -3,12 +3,15 @@
 
 > **Baseline document (Stage 1).** The tables below describe the original
 > 16-test suite and remain as the frozen starting point. The current suite has
-> **443 tests** (443 passed, 1 warning on 2026-11-12; the same run with coverage
-> reported **92% statement coverage**, 255 missed of 3259 statements). See
+> **474 tests** (474 passed, 1 warning on 2026-11-12). The **92% statement
+> coverage** (255 missed of 3259 statements) was measured on the earlier
+> 443-test suite and was not re-measured after the Stage 6 live-source
+> follow-up. See
 > section 6 for the Stage 9 coverage report, section 7 for the Stage 10
 > benchmark-harness tests, section 8 for the Stage 11–12 provenance tests,
 > section 9 for the Stage 14 hardware-abstraction tests, section 10 for the
-> Stage 13 localisation tests, and
+> Stage 13 localisation tests, section 11 for the Stage 6 live-microphone tests,
+> and
 > [`ADVANCED_DEVELOPMENT_ROADMAP.md`](ADVANCED_DEVELOPMENT_ROADMAP.md) for the
 > stage status.
 
@@ -325,4 +328,44 @@ TOTAL   3259 statements   255 missed   92%
 ```
 
 No legacy test was modified, skipped or weakened.
+
+---
+
+## 11. Stage 6 live-microphone tests (2026-11-12)
+
+`tests/test_audio_microphone.py` adds 31 tests that need **no microphone and no
+`sounddevice` backend**: the stream factory is injected, so the suite runs on any
+machine.
+
+Covered behaviour:
+
+* constructor validation (rate, block, channels, buffer size, timeout, device
+  type, factory callable) and default geometry;
+* open/read/close lifecycle, idempotent `open()`, `read()` before `open()`,
+  stream stop/close on shutdown and on open failure;
+* two-channel downmix, callback-status capture, empty/non-finite/out-of-range
+  block rejection, queue overflow accounting, stall timeout with the rejected
+  count in the message, and `close()` unblocking a waiting reader;
+* `list_input_devices()` filtering output endpoints and wrapping backend errors;
+* integration with the shared `stream_predictions` sliding-window pipeline.
+
+```powershell
+.\venv\Scripts\python.exe -m pytest tests/test_audio_microphone.py -q
+```
+
+```text
+31 passed
+```
+
+The full suite after this change:
+
+```text
+474 passed, 1 warning
+```
+
+The real device loop was exercised manually through
+`scripts/stream_microphone.py` (device listing, 22050 Hz capture, warm-up) and is
+**not** part of the suite. It exposed a blocked/faulty microphone and a
+near-silence false positive; see [`audio_pipeline.md`](audio_pipeline.md) section
+7 and [`limitations.md`](limitations.md). No live accuracy claim is made.
 

@@ -212,8 +212,10 @@ available. The latest full result (351 tests, 92% statement coverage) is in
   signals and makes no traffic-safety claim.
 * Video is file playback; webcam and RTSP sources exist in the video module but
   are not validated on hardware or a live stream in this dashboard.
-* Audio is file-backed streaming. Live microphone capture remains blocked on
-  the optional `sounddevice` dependency.
+* Audio is file-backed streaming in the dashboard. A live microphone source
+  exists in `ambulance_system.audio` and is exposed through
+  `scripts/stream_microphone.py`, but it is not wired into the dashboard and
+  live accuracy is unvalidated (see [`audio_pipeline.md`](audio_pipeline.md)).
 * Rendering is intentionally simple Tkinter; heavy inference can still reduce
   preview frame rate, although it no longer blocks the event loop or corrupts
   widget state.

@@ -1,9 +1,14 @@
-# Offline Audio Streaming
+# Offline and Live Audio Streaming
 
-Stage 6 replaces the one-shot, first-three-seconds audio check with a sliding
-window over the whole file. **Only the offline file path is implemented.** Live
-microphone capture is deferred until `sounddevice` is installed and approved;
-`new.py` continues to analyse selected audio files.
+Stage 6 replaced the one-shot, first-three-seconds audio check with a sliding
+window over the whole file and added a live microphone source on top of the same
+windowing code. The dashboard (`new.py`) still analyses selected audio files;
+live capture is available through `scripts/stream_microphone.py`.
+
+Live capture is **not** a validated field result. `sounddevice` is optional at
+runtime (installed in this environment as 0.5.6), the device is opened at the
+configured rate without resampling, and the classifier was not trained for live
+ambient noise. Measurements and the observed failure modes are in section 7.
 
 This stage makes no improvement claim for the siren classifier. The published
 checkpoint and its provenance caveats are documented in
@@ -17,8 +22,9 @@ cleaning happened here.
 ```
 src/ambulance_system/audio/features.py    load_audio + one MFCC implementation
 src/ambulance_system/audio/classifier.py  SirenClassifier wrapper + probabilities
-src/ambulance_system/audio/devices.py     FileAudioSource (mono block source)
+src/ambulance_system/audio/devices.py     FileAudioSource + MicrophoneAudioSource
 src/ambulance_system/audio/streaming.py   sliding windows, predictions, summary
+scripts/stream_microphone.py              live capture CLI (Stage 6 follow-up)
 ```
 
 ### Feature parity
@@ -52,9 +58,29 @@ missing probability is recorded as 0.0/1.0 rather than invented.
 ### Sources
 
 `FileAudioSource` decodes the file once (the published clips are ~3 s) and then
-returns fixed-size mono blocks (`audio.block_s`, default 0.25 s). A future
-microphone source only has to implement the same `AudioSource` protocol. No
-microphone code, device enumeration or PortAudio dependency exists yet.
+returns fixed-size mono blocks (`audio.block_s`, default 0.25 s).
+
+`MicrophoneAudioSource` implements the same `AudioSource` protocol from a live
+input device:
+
+* `sounddevice` is imported lazily in `open()`/`list_input_devices()`, so the
+  package still imports and its tests run when the optional backend is absent.
+* The PortAudio callback hands blocks to a bounded queue (`buffer_blocks`,
+  default 8 → 2 s). If the consumer falls behind, the newest block is dropped
+  and counted in `dropped_blocks`.
+* Empty, non-finite or out-of-range blocks (peak > `MAX_ABS_SAMPLE = 4.0`) are
+  rejected and counted in `invalid_blocks`. A blocked Windows microphone has
+  been observed returning uninitialised buffers (RMS around 1e24), which would
+  otherwise crash feature extraction.
+* Two-channel input is downmixed to mono by averaging. The device is opened at
+  `audio.sample_rate`; there is no resampling layer, so an unsupported rate
+  raises `AudioSourceError`.
+* `read()` waits up to `read_timeout_s` (default 2 s) and then raises
+  `AudioSourceError` with the rejected-block count. `close()` stops the stream
+  and unblocks a reader.
+
+`list_input_devices()` returns `AudioDeviceInfo` records for input-capable
+devices only, hiding output endpoints.
 
 ## 2. Sliding-window behaviour
 
@@ -149,20 +175,65 @@ hundred milliseconds. The dashboard does not yet warm up the pipeline at start.
 
 ## 6. Tests
 
-Stage 6 adds 31 tests:
+Stage 6 added 31 tests in the original offline pass; the live-source follow-up
+adds 31 more (62 for the audio stage):
 
 | File | Coverage |
 |---|---|
 | `tests/test_audio_features.py` | legacy MFCC parity, resampling/downmixing, determinism, input validation |
 | `tests/test_audio_classifier.py` | real checkpoint, threshold policy, probability fallback, validation |
 | `tests/test_audio_streaming.py` | window geometry, overlap, partial tails, block source, event conversion, real siren/non-siren files |
+| `tests/test_audio_microphone.py` | fake `sounddevice` backend: lifecycle, mono downmix, timeout, close/unblock, buffer overflow, invalid blocks, device listing, shared-pipeline integration |
 
 The 16 legacy audio/vision tests remain unchanged and passing.
 
-## 7. Still blocked
+## 7. Live microphone capture (2026-11-12)
 
-* **Live microphone capture** needs `sounddevice` (or `pyaudio`) installed; it
-  is not present. No device code was added.
+```powershell
+# list input-capable devices and exit
+.\venv\Scripts\python.exe scripts\stream_microphone.py --list-devices
+
+# capture until Ctrl+C, or for a bounded run
+.\venv\Scripts\python.exe scripts\stream_microphone.py --device 1 --seconds 20
+```
+
+The CLI loads the normal config and checkpoint, warms the first MFCC call
+**before** opening the device, then prints one line per window. The warm-up is
+deliberate: the first librosa/Numba call takes ~8 s on this machine, and without
+it the bounded queue overflows and about 5 s of live audio is lost (measured: 21
+dropped blocks in one run; 0 after the fix).
+
+Measured on this machine (Windows, Realtek microphone, 22050 Hz, mono):
+
+| Check | Result |
+|---|---|
+| `--list-devices` | 7 input endpoints reported; output endpoints hidden |
+| Device opened at 22050 Hz, 0.25 s blocks | works; 5512-sample callbacks |
+| `--seconds 1` (3 s window) | 1 window classified; 0 dropped blocks after warm-up |
+| Device health | intermittent uninitialised buffers (RMS ~1e24) and noise-floor captures (RMS ~1.5e-5) |
+
+**Important negative result:** the microphone on this machine was not delivering
+trustworthy audio. Some captures returned garbage buffers, others sat at the
+noise floor, and a near-silent 3-second window was classified **SIREN with
+confidence 0.87–0.93**. That is a classifier calibration failure on
+out-of-distribution, near-silent input — not evidence of a siren. Therefore:
+
+* the capture layer is unit-tested with an injected fake backend, so no
+  hardware is required in CI;
+* the real device loop was exercised, but **live siren accuracy is not
+  validated** and no live detection metric is quoted;
+* live output is indicative only and must not be connected to a signal
+  controller.
+
+The energy/calibration gap belongs to the classifier and data work
+(Stages 11–12), not to the capture layer. See
+[`limitations.md`](limitations.md).
+
+## 8. Still blocked
+
+* **Live microphone validation** needs a known-good microphone with Windows
+  privacy access granted and a recorded siren source; neither was available
+  here. The device code exists, but no live accuracy figure is claimed.
 * **Audio retraining or data cleaning** still needs verified provenance, a
   retained train/test split and a training script. None exist in the repo.
 * The classifier pickle was written with scikit-learn 1.6.1 and is loaded under

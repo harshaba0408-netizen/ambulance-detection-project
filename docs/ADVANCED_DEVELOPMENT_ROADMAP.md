@@ -1,7 +1,7 @@
 # Advanced Development Roadmap
 ## AI Ambulance Detection & Adaptive Traffic Signal Priority System
 
-**Document status:** living implementation roadmap - Stage 11 implemented 2026-11-11 (content-group split); Stage 14 implemented 2026-11-12 (simulation/mock hardware boundary); Stage 13 experimental and Stage 15 documentation/release completed 2026-11-12
+**Document status:** living implementation roadmap - Stage 11 implemented 2026-11-11 (content-group split); Stage 14 implemented 2026-11-12 (simulation/mock hardware boundary); Stage 13 experimental and Stage 15 documentation/release completed 2026-11-12; Stage 6 live microphone source added 2026-11-12; status re-verified 2026-11-12 (`474 passed, 1 warning`)
 **Date:** 2026-11-09 (last updated 2026-11-12)
 **Baseline commit:** `d4c3a7dc3028b38dd10e1db52cd985a26a72be4b` (`main` = `origin/main` at the start of Stage 13/15)
 **Companion document:** [`BASELINE_AUDIT.md`](BASELINE_AUDIT.md) — all measured facts referenced here come from that audit.
@@ -39,8 +39,9 @@ This roadmap fixes those in dependency order, starting with the work that needs 
 | GPU | None (`torch 2.10.0+cpu`, CUDA unavailable) | Training on this machine is not viable for YOLOv8-L |
 | Python | 3.12.5, venv present | Fine |
 
-Missing optional packages: `sounddevice` / `pyaudio` (microphone capture), `pytest-cov` (coverage), `webrtcvad`, `resampy`.
+Missing optional packages at audit time: `sounddevice` / `pyaudio` (microphone capture), `webrtcvad`, `resampy`.
 Installed and usable: `librosa 0.11.0`, `soundfile 0.13.1`, `opencv 4.13.0`, `psutil 7.2.2`, `PyYAML 6.0.3`.
+Installed since the audit: `pytest-cov` (2026-11-10), `sounddevice 0.5.6` (2026-11-12, Stage 6 live microphone source; accuracy unvalidated).
 
 ### 2.2 Repository state
 
@@ -140,7 +141,7 @@ Rules the design must enforce:
 
 ## 4. Test status and quality gap
 
-**Baseline at Stage 1:** 16 collected, 16 passed, 0 failed, 0 skipped, 1 Librosa deprecation warning, 40.53 s. **Current (2026-11-12):** 443 passed, 1 warning, 40.20 s plain run; 92% statement coverage (255 missed of 3259) measured with the same 443-test suite. Release `0.3.0`.
+**Baseline at Stage 1:** 16 collected, 16 passed, 0 failed, 0 skipped, 1 Librosa deprecation warning, 40.53 s. **Current (2026-11-12):** 474 passed, 1 warning, 86.16 s plain run; 92% statement coverage (255 missed of 3259) measured on the earlier 443-test suite. Release `0.3.0`.
 
 | Area | Existing tests | Real coverage of production code | Gap |
 |---|---:|---|---|
@@ -274,7 +275,7 @@ Exit criteria: clean shutdown releases the device; frame sampling configurable (
 ---
 
 ### Stage 6 — Continuous audio streaming
-**Status:** offline file path implemented 2026-11-09 — 31 new tests. Live microphone path still blocked on `sounddevice`. **Complexity: L (5–8 days).**
+**Status:** offline file path implemented 2026-11-09 — 31 tests; live microphone path implemented 2026-11-12 with `sounddevice` 0.5.6 — 31 additional tests. Live accuracy is **not validated** (device fault and near-silence false positives on this machine). **Complexity: L (5–8 days).**
 
 Objective: run the existing classifier on a rolling window instead of one file.
 
@@ -290,13 +291,15 @@ tests/test_audio_streaming.py              # file-backed stream, silence, clippe
 
 Modify: `new.py::start_audio_detection` (replace one-shot with streaming worker), `requirements.txt` (**approval required** for `sounddevice`).
 
-Delivered: `src/ambulance_system/audio/{features,classifier,devices,streaming}.py`, `tests/test_audio_features.py`, `tests/test_audio_classifier.py`, `tests/test_audio_streaming.py`, and `docs/audio_pipeline.md`. `new.py` now scans every sliding window of the selected file instead of only the first three seconds, uses a single MFCC implementation that is tested against the legacy calculation, and consumes positive-class probabilities when available. The file source yields mono blocks; live microphone capture is not implemented and no audio dependency was installed. Real checks on two 3-second clips produced two windows each and the expected siren/non-siren flags; first-call librosa warm-up takes about 8 s on this machine, later files a few hundred milliseconds.
+Delivered: `src/ambulance_system/audio/{features,classifier,devices,streaming}.py`, `tests/test_audio_features.py`, `tests/test_audio_classifier.py`, `tests/test_audio_streaming.py`, and `docs/audio_pipeline.md`. `new.py` now scans every sliding window of the selected file instead of only the first three seconds, uses a single MFCC implementation that is tested against the legacy calculation, and consumes positive-class probabilities when available. The file source yields mono blocks. Real checks on two 3-second clips produced two windows each and the expected siren/non-siren flags; first-call librosa warm-up takes about 8 s on this machine, later files a few hundred milliseconds.
+
+Live follow-up (2026-11-12): `MicrophoneAudioSource` and `list_input_devices()` were added to `audio/devices.py`, `scripts/stream_microphone.py` provides `--list-devices` / `--device` / `--seconds`, and `tests/test_audio_microphone.py` adds 31 backend-free tests. `sounddevice==0.5.6` was installed with approval and pinned in `requirements.txt`; the import stays lazy so the package still runs without it. The callback queue is bounded (drops are counted), mono downmix averages two channels, and empty/non-finite/out-of-range blocks are rejected so a faulty driver cannot feed garbage to the classifier. The CLI warms the first MFCC call before opening the device; without that, a measured run dropped 21 blocks during the ~8 s warm-up. Device enumeration reported 7 input endpoints on this machine. **Live accuracy was not validated:** the Realtek microphone intermittently returned uninitialised buffers (RMS ~1e24) and near-silent captures (RMS ~1.5e-5), and one near-silent 3-second window was classified as SIREN with confidence 0.87–0.93. That is a classifier calibration failure on out-of-distribution input and is recorded as a limitation, not a detection result. The dashboard still consumes files only.
 
 Keep the existing classifier and its 40-MFCC pipeline. `predict_proba` gives a real confidence signal for fusion; the current code only exposes a hard label.
 
 Exit criteria: 1–3 s window with configurable overlap; no blocking of the video path; timestamps on every prediction; graceful handling of device loss; existing audio tests untouched.
 
-**Approval gate:** installing `sounddevice` (small wheel, but it is a new dependency and opens a microphone device).
+**Approval gate:** installing `sounddevice` (small wheel, but it is a new dependency and opens a microphone device). **Approved and installed 2026-11-12 as 0.5.6.**
 
 ---
 
@@ -327,7 +330,7 @@ Delivered: `src/ambulance_system/fusion/{engine,rules}.py`, `tests/test_fusion.p
 ---
 
 ### Stage 8 — Dashboard upgrade and thread safety
-**Status:** implemented 2026-11-10 - 29 new tests, 273 total at that stage (443 now). **Complexity: L (5-8 days).**
+**Status:** implemented 2026-11-10 - 29 new tests, 273 total at that stage (474 now). **Complexity: L (5-8 days).**
 
 Objective: keep the existing Tkinter UI but make it a thin, non-blocking renderer.
 
@@ -371,7 +374,7 @@ Delivered: installed `pytest-cov==7.1.0` / `coverage==7.17.2` with approval; add
 ---
 
 ### Stage 10 — Benchmark harness and baseline comparison
-**Status:** implemented 2026-11-10 - 16 new tests, 367 total at that stage (443 now). **Complexity: M (2-4 days).**
+**Status:** implemented 2026-11-10 - 16 new tests, 367 total at that stage (474 now). **Complexity: M (2-4 days).**
 
 Create:
 
@@ -469,7 +472,7 @@ Delivered:
 * Updates to `README.md`, [`architecture.md`](architecture.md), [`testing_report.md`](testing_report.md), [`dataset_report.md`](dataset_report.md), [`BASELINE_VS_IMPROVED.md`](BASELINE_VS_IMPROVED.md) and this roadmap.
 * Package version bumped to `0.3.0`.
 
-Every claim is labelled **Implemented**, **Tested**, **Experimental**, **Planned** or **Blocked**. The final suite is 443 passed with 1 warning; coverage is 92% of 3259 statements. CV bullets are generated only from verified work and are published with their caveats.
+Every claim is labelled **Implemented**, **Tested**, **Experimental**, **Planned** or **Blocked**. The release-0.3.0 suite was 443 passed with 1 warning; coverage is 92% of 3259 statements. The later Stage 6 live-microphone follow-up adds 31 backend-free tests (474 total). CV bullets are generated only from verified work and are published with their caveats.
 
 Git: no force push, no secrets, models via LFS. Commit and push require explicit approval for the specific work.
 
@@ -505,7 +508,7 @@ There is a duplicate local checkpoint `Yovov8l_Amubalce_trained.pt` (87.6 MB, di
 
 | Need | Blocks | Cost / size | Approval |
 |---|---|---|---|
-| `sounddevice` package | Live microphone capture (Stage 6) | Small wheel | **Required** |
+| `sounddevice` package | Live microphone capture (Stage 6) | Small wheel | **Approved and installed 2026-11-12 (0.5.6)** |
 | `pytest-cov` package | Coverage reporting (Stage 9) | Small wheel | **Approved and installed 2026-11-10** |
 | ≥ 10–20 GB free disk | Dataset expansion + training artefacts (Stage 12) | — | **Required** |
 | GPU or paid compute | Practical YOLOv8-L retraining | Cloud cost | **Required** |
@@ -515,6 +518,8 @@ There is a duplicate local checkpoint `Yovov8l_Amubalce_trained.pt` (87.6 MB, di
 | Optional 2-mic array | GCC-PHAT research (Stage 13) | Hardware purchase | **Required** |
 
 Stage 10 is complete. Stage 11 tooling, the audio Stage 12 follow-up, Stage 13 (experimental) and Stage 14 (simulation/mock boundary) are implemented; source provenance remains unverified. Stage 15 documentation/release is complete. The vision Stage 12 retraining remains resource-blocked. `pytest-cov` is installed and no longer a blocker.
+
+Stage 6 is complete for both the file and live sources; live **accuracy** remains unvalidated because this machine's microphone delivered garbage buffers and near-silent audio that the classifier scored as siren. No other stage is waiting on code: the remaining gaps are external resources (data, GPU, hardware, provenance) or explicitly experimental work.
 
 ---
 
@@ -569,7 +574,7 @@ Stage 2  config + events + logging + clock      ← complete
 Stage 3  signal state machine + tests           ← complete
 Stage 4  detector module + eval harness         ← complete
 Stage 5  video source abstraction               ← complete
-Stage 6  audio streaming                        ← offline path complete; live mic needs sounddevice
+Stage 6  audio streaming                        ← file + live sources complete; live accuracy not validated
 Stage 7  fusion engine                            ← complete
 Stage 8  dashboard upgrade                       ← complete
 Stage 9  coverage + expanded tests              ← complete
@@ -581,4 +586,4 @@ Stage 14 hardware abstraction (simulation only)  ← complete
 Stage 15 docs, release, research report         ← complete (0.3.0)
 ```
 
-**Current status: Stage 13 experimental and Stage 15 complete (443 passing; 92% statement coverage; release 0.3.0).** Source-independent audio metrics still require a provenance manifest. Vision Stage 12 remains blocked by disk/GPU/licensed data. Real microphone-array localisation and physical hardware remain planned. Release actions (commit/push) require explicit approval.
+**Current status: Stage 13 experimental and Stage 15 complete (release 0.3.0 had 443 passing; the Stage 6 live-mic follow-up brings the suite to 474; 92% statement coverage measured on the 443-test suite).** Status re-verified on 2026-11-12: `474 passed, 1 warning`. Source-independent audio metrics still require a provenance manifest. Vision Stage 12 remains blocked by disk/GPU/licensed data. Stage 6 live microphone capture is implemented, but its accuracy is unvalidated (device fault and near-silence false positives on this machine). Real microphone-array localisation and physical hardware remain planned. Release actions (commit/push) require explicit approval.

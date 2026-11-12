@@ -36,7 +36,7 @@ camera or road-side deployment was available.
 | YOLOv8 ambulance detector | Implemented, Tested | Checkpoint metadata; 5-image test-split evaluation | Five test images; no retraining; CPU-only |
 | MFCC + Random Forest siren classifier | Implemented, Tested | 396-file content-group split; 1.0000 val/test | Not source-independent; single channel; no direction |
 | Video source abstraction (file/webcam/RTSP) | Implemented, Tested | Source and pipeline tests | No live RTSP or camera validation |
-| Audio streaming | Implemented, Tested | Streaming tests; latency benchmark | No real intersection microphone deployment |
+| Audio streaming | Implemented, Tested | Streaming tests; latency benchmark; 31 backend-free live-source tests | Live accuracy unvalidated; no intersection deployment |
 | Multimodal fusion policies | Implemented, Tested | Fusion and view-model tests | Rule-based thresholds, not learned or field-tuned |
 | Signal state machine and arbiter | Implemented, Tested | Headless state-machine and arbiter tests | Software simulation; no physical signal |
 | Dashboard | Implemented, Tested | Headless view-model and widget tests; manual launch | CPU-only; no long-run soak test |
@@ -126,6 +126,14 @@ camera or road-side deployment was available.
 10. **Redistribution is unresolved.** The audio must not be redistributed until
     its licences are confirmed, even though only two fixtures are published in
     this repository.
+11. **Live capture is unvalidated and mis-calibrated on near-silence.**
+    `MicrophoneAudioSource` and `scripts/stream_microphone.py` exist, but on
+    this machine the microphone intermittently returned uninitialised buffers
+    (RMS ~1e24) and near-silent audio (RMS ~1.5e-5); one near-silent 3 s window
+    was scored as SIREN with confidence 0.87–0.93. No recorded siren was played
+    through the device, so the live path has no accuracy figure. Invalid blocks
+    are rejected by the capture layer, but the classifier's energy calibration
+    remains an open data/model issue.
 
 ---
 
@@ -220,10 +228,11 @@ camera or road-side deployment was available.
 
 ## 8. Testing and reproducibility limitations
 
-1. **Test count and coverage.** The full suite is **443 passed, 1 warning** on
-   2026-11-12 (Python 3.12.5, CPU-only Windows). The same run with
-   `--cov=src/ambulance_system` reported **92% statement coverage** (255 missed
-   of 3259 statements) and took 66.40 s. Coverage measures executed statements,
+1. **Test count and coverage.** The full suite is **474 passed, 1 warning** on
+   2026-11-12 (Python 3.12.5, CPU-only Windows, 86.16 s). The **92% statement
+   coverage** (255 missed of 3259 statements, 66.40 s) was measured on the
+   earlier 443-test suite and was not re-measured after the 31 Stage 6
+   live-microphone tests were added. Coverage measures executed statements,
    not correctness or field readiness.
 2. **The warning is real.** The Librosa `audioread` deprecation warning is
    triggered by the legacy invalid-path test. It is not suppressed.
