@@ -457,7 +457,11 @@ class MicrophoneAudioSource:
             block = block.mean(axis=1) if block.shape[1] > 1 else block[:, 0]
         elif block.ndim != 1:
             return
-        block = np.ascontiguousarray(block, dtype=np.float32)
+        # PortAudio owns this buffer and reuses it after the callback returns,
+        # so the queue must never hold a reference to it. `ascontiguousarray`
+        # is a no-op for an already contiguous float32 array, hence the forced
+        # copy here.
+        block = np.array(block, dtype=np.float32, order="C", copy=True)
         if (
             block.size == 0
             or not np.all(np.isfinite(block))

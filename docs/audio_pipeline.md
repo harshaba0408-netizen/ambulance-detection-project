@@ -69,9 +69,12 @@ input device:
   default 8 → 2 s). If the consumer falls behind, the newest block is dropped
   and counted in `dropped_blocks`.
 * Empty, non-finite or out-of-range blocks (peak > `MAX_ABS_SAMPLE = 4.0`) are
-  rejected and counted in `invalid_blocks`. A blocked Windows microphone has
-  been observed returning uninitialised buffers (RMS around 1e24), which would
-  otherwise crash feature extraction.
+  rejected and counted in `invalid_blocks` as defence in depth. The callback
+  also **copies** each block: PortAudio reuses its buffer after the callback
+  returns, and an earlier version queued a reference to it, which produced
+  garbage windows (RMS ~1e24) that crashed feature extraction. A regression
+  test mutates the emitted array after the callback and checks the value that
+  `read()` returns.
 * Two-channel input is downmixed to mono by averaging. The device is opened at
   `audio.sample_rate`; there is no resampling layer, so an unsupported rate
   raises `AudioSourceError`.
@@ -176,15 +179,15 @@ hundred milliseconds. The dashboard does not yet warm up the pipeline at start.
 ## 6. Tests
 
 Stage 6 added 31 tests in the original offline pass; the live-source follow-up
-adds 31 more, plus 8 silence-gate tests in `tests/test_audio_streaming.py`
-(70 audio-stage tests, 482 in the full suite):
+adds 32 more, plus 8 silence-gate tests in `tests/test_audio_streaming.py`
+(71 audio-stage tests, 483 in the full suite):
 
 | File | Coverage |
 |---|---|
 | `tests/test_audio_features.py` | legacy MFCC parity, resampling/downmixing, determinism, input validation |
 | `tests/test_audio_classifier.py` | real checkpoint, threshold policy, probability fallback, validation |
 | `tests/test_audio_streaming.py` | window geometry, overlap, partial tails, block source, event conversion, real siren/non-siren files, silence-gate skip/allow/validation |
-| `tests/test_audio_microphone.py` | fake `sounddevice` backend: lifecycle, mono downmix, timeout, close/unblock, buffer overflow, invalid blocks, device listing, shared-pipeline integration |
+| `tests/test_audio_microphone.py` | fake `sounddevice` backend: lifecycle, mono downmix, timeout, close/unblock, buffer overflow, invalid blocks, buffer-reuse copy, device listing, shared-pipeline integration |
 
 The 16 legacy audio/vision tests remain unchanged and passing.
 
@@ -215,15 +218,18 @@ Measured on this machine (Windows, Realtek microphone, 22050 Hz, mono):
 | `--list-devices` | 7 input endpoints reported; output endpoints hidden |
 | Device opened at 22050 Hz, 0.25 s blocks | works; 5512-sample callbacks |
 | `--seconds 1` (3 s window) | 1 window classified; 0 dropped blocks after warm-up |
-| Device health | intermittent uninitialised buffers (RMS ~1e24) and noise-floor captures (RMS ~1.5e-5) |
+| Device health | consistently at the noise floor (RMS ~1.5e-5, peak ~3e-5); the earlier RMS ~1e24 captures were an aliasing bug in our callback, fixed by copying the PortAudio buffer |
 | `--seconds 10`, gate off (before) | 5 windows, **5 siren**, confidence 0.87–0.89 on a muted input |
 | `--seconds 10`, default gate (after) | 5 windows, **0 siren**, 5 reported `silent` |
 
-**Important negative result:** the microphone on this machine was not delivering
-trustworthy audio. Some captures returned garbage buffers, others sat at the
-noise floor, and a near-silent 3-second window was classified **SIREN with
-confidence 0.87–0.93**. That is a classifier calibration failure on
-out-of-distribution, near-silent input — not evidence of a siren. Therefore:
+**Important negative result:** the microphone on this machine is not delivering
+usable audio — every capture sits at the noise floor (RMS ~1.5e-5), i.e. the
+device is muted or Windows is blocking capture. A near-silent 3-second window was
+classified **SIREN with confidence 0.87–0.93**. That is a classifier calibration
+failure on out-of-distribution, near-silent input — not evidence of a siren.
+(An earlier "garbage buffer" symptom was our own bug: the audio callback queued
+a reference to PortAudio's reused buffer instead of a copy. It is fixed and
+regression-tested; `invalid_blocks` remains as a guard.) Therefore:
 
 * the capture layer is unit-tested with an injected fake backend, so no
   hardware is required in CI;

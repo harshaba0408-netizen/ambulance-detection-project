@@ -36,7 +36,7 @@ camera or road-side deployment was available.
 | YOLOv8 ambulance detector | Implemented, Tested | Checkpoint metadata; 5-image test-split evaluation | Five test images; no retraining; CPU-only |
 | MFCC + Random Forest siren classifier | Implemented, Tested | 396-file content-group split; 1.0000 val/test | Not source-independent; single channel; no direction |
 | Video source abstraction (file/webcam/RTSP) | Implemented, Tested | Source and pipeline tests | No live RTSP or camera validation |
-| Audio streaming | Implemented, Tested | Streaming tests; latency benchmark; 31 backend-free live-source tests + 8 silence-gate tests | Live accuracy unvalidated; no intersection deployment |
+| Audio streaming | Implemented, Tested | Streaming tests; latency benchmark; 32 backend-free live-source tests + 8 silence-gate tests | Live accuracy unvalidated; no intersection deployment |
 | Multimodal fusion policies | Implemented, Tested | Fusion and view-model tests | Rule-based thresholds, not learned or field-tuned |
 | Signal state machine and arbiter | Implemented, Tested | Headless state-machine and arbiter tests | Software simulation; no physical signal |
 | Dashboard | Implemented, Tested | Headless view-model and widget tests; manual launch | CPU-only; no long-run soak test |
@@ -128,9 +128,9 @@ camera or road-side deployment was available.
     this repository.
 11. **Live capture is unvalidated and mis-calibrated on near-silence.**
     `MicrophoneAudioSource` and `scripts/stream_microphone.py` exist, but on
-    this machine the microphone intermittently returned uninitialised buffers
-    (RMS ~1e24) and near-silent audio (RMS ~1.5e-5); one near-silent 3 s window
-    was scored as SIREN with confidence 0.87–0.93. No recorded siren was played
+    this machine the microphone delivered noise-floor audio only (RMS ~1.5e-5,
+    peak ~3e-5; muted or blocked by Windows), and a near-silent 3 s window was
+    scored as SIREN with confidence 0.87–0.93. No recorded siren was played
     through the device, so the live path has no accuracy figure. Invalid blocks
     are rejected by the capture layer, and the live CLI now applies an RMS
     silence gate (`--min-rms`, default `1e-3`; the shared streaming default is
@@ -138,7 +138,9 @@ camera or road-side deployment was available.
     them. Re-running the same muted input gave 0 siren windows instead of 5.
     The gate is a guard against an unusable input signal; it does **not** make
     live accuracy known, and the classifier's energy calibration remains an
-    open data/model issue.
+    open data/model issue. (Separately, the RMS ~1e24 captures once blamed on
+    the driver were an aliasing bug in our callback: the queue held a reference
+    to PortAudio's reused buffer. That is fixed and regression-tested.)
 
 ---
 
@@ -233,11 +235,12 @@ camera or road-side deployment was available.
 
 ## 8. Testing and reproducibility limitations
 
-1. **Test count and coverage.** The full suite is **482 passed, 1 warning** on
-   2026-11-12 (Python 3.12.5, CPU-only Windows, 68.38 s). The **92% statement
+1. **Test count and coverage.** The full suite is **483 passed, 1 warning** on
+   2026-11-12 (Python 3.12.5, CPU-only Windows, 62.52 s). The **92% statement
    coverage** (255 missed of 3259 statements, 66.40 s) was measured on the
-   earlier 443-test suite and was not re-measured after the 31 Stage 6
-   live-microphone tests were added. Coverage measures executed statements,
+   earlier 443-test suite and was not re-measured after the 40 Stage 6
+   live-microphone tests (32 source + 8 silence gate) were added. Coverage
+   measures executed statements,
    not correctness or field readiness.
 2. **The warning is real.** The Librosa `audioread` deprecation warning is
    triggered by the legacy invalid-path test. It is not suppressed.

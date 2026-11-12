@@ -25,8 +25,8 @@ The defensible result is an engineering and evaluation platform: **443 automated
 tests passed** at release 0.3.0, the source tree has **92% statement coverage**,
 and every reported
 number is tied to a stored result or a reproducible command. Since that release,
-the Stage 6 live-microphone follow-up adds 31 backend-free live-source tests and
-8 silence-gate tests (**482 total**); no other result or claim in this report
+the Stage 6 live-microphone follow-up adds 32 backend-free live-source tests and
+8 silence-gate tests (**483 total**); no other result or claim in this report
 changes. The project does not
 claim source-independent audio accuracy, improved vision weights, real-time
 performance, traffic-control benefit, field localisation or physical hardware

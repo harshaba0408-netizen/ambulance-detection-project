@@ -209,6 +209,23 @@ def test_callback_status_is_recorded():
     assert source.last_status == "input overflow"
 
 
+def test_read_returns_a_copy_that_survives_buffer_reuse():
+    factory = FakeFactory()
+    source = make_source(factory)
+    source.open()
+
+    reusable = np.full(4, 0.25, dtype=np.float32)
+    factory.stream.emit(reusable)
+    # PortAudio overwrites its buffer after the callback returns.
+    reusable[:] = 1e24
+
+    block = source.read()
+
+    assert block is not None
+    np.testing.assert_allclose(block, np.full(4, 0.25, dtype=np.float32))
+    assert block.dtype == np.float32
+
+
 def test_invalid_blocks_are_rejected_and_counted():
     factory = FakeFactory()
     source = make_source(factory, read_timeout_s=0.05)

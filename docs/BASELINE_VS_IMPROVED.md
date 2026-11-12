@@ -281,8 +281,8 @@ on 2026-11-12: `443 passed, 1 warning in 40.20s`. The same run with
 `--cov=src/ambulance_system` passed 443 tests, took 66.40 s and reported 92%
 (255 missed of 3259 statements). No test was removed, skipped or weakened.
 After this comparison was recorded, the Stage 6 live-microphone follow-up added
-31 backend-free live-source tests and 8 silence-gate tests; the current total is
-**482 passed, 1 warning** (68.38 s, coverage not re-measured).
+32 backend-free live-source tests and 8 silence-gate tests; the current total is
+**483 passed, 1 warning** (62.52 s, coverage not re-measured).
 
 ---
 

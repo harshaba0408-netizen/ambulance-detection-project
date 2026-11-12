@@ -6,7 +6,7 @@
 
 > **Post-release note (2026-11-12):** the Stage 6 live-microphone follow-up adds
 > `MicrophoneAudioSource`, `scripts/stream_microphone.py`, `sounddevice 0.5.6`,
-> 31 backend-free tests and 8 silence-gate tests (482 total). This release note
+> 32 backend-free tests and 8 silence-gate tests (483 total). This release note
 > remains the frozen `0.3.0` record; live accuracy is unvalidated, the gate only
 > suppresses near-silent input, and no `0.3.0` claim changes.
 

@@ -3,7 +3,7 @@
 
 > **Baseline document (Stage 1).** The tables below describe the original
 > 16-test suite and remain as the frozen starting point. The current suite has
-> **482 tests** (482 passed, 1 warning on 2026-11-12). The **92% statement
+> **483 tests** (483 passed, 1 warning on 2026-11-12). The **92% statement
 > coverage** (255 missed of 3259 statements) was measured on the earlier
 > 443-test suite and was not re-measured after the Stage 6 live-source
 > follow-up.
@@ -334,7 +334,7 @@ No legacy test was modified, skipped or weakened.
 
 ## 11. Stage 6 live-microphone tests (2026-11-12)
 
-`tests/test_audio_microphone.py` adds 31 tests that need **no microphone and no
+`tests/test_audio_microphone.py` adds 32 tests that need **no microphone and no
 `sounddevice` backend**: the stream factory is injected, so the suite runs on any
 machine.
 
@@ -346,7 +346,9 @@ Covered behaviour:
   stream stop/close on shutdown and on open failure;
 * two-channel downmix, callback-status capture, empty/non-finite/out-of-range
   block rejection, queue overflow accounting, stall timeout with the rejected
-  count in the message, and `close()` unblocking a waiting reader;
+  count in the message, `close()` unblocking a waiting reader, and a
+  buffer-reuse regression test (mutating the backend array after the callback
+  must not change the returned block);
 * `list_input_devices()` filtering output endpoints and wrapping backend errors;
 * integration with the shared `stream_predictions` sliding-window pipeline.
 
@@ -365,13 +367,13 @@ A follow-up added **8 silence-gate tests** to `tests/test_audio_streaming.py`
 ```
 
 ```text
-55 passed
+56 passed
 ```
 
 The full suite after this change:
 
 ```text
-482 passed, 1 warning
+483 passed, 1 warning
 ```
 
 The real device loop was exercised manually through
